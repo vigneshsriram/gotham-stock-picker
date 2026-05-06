@@ -13,6 +13,7 @@ import MoatScore from './components/metrics/MoatScore';
 import ManagementScore from './components/metrics/ManagementScore';
 import Valuation from './components/metrics/Valuation';
 import { useStockData } from './hooks/useStockData';
+import { hasApiKey } from './api/alphaVantage';
 import './styles.css';
 
 const WATCHLIST_KEY = 'av_watchlist';
@@ -29,9 +30,10 @@ function saveWatchlist(list: string[]) {
 }
 
 export default function App() {
-  const [activeTicker, setActiveTicker] = useState('AAPL');
+  const [activeTicker, setActiveTicker] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
   const [watchlist, setWatchlist] = useState<string[]>(loadWatchlist);
-  const { data, loading, error } = useStockData(activeTicker);
+  const { data, loading, error } = useStockData(activeTicker, retryKey);
 
   useEffect(() => {
     if (!data) return;
@@ -47,15 +49,27 @@ export default function App() {
     setActiveTicker(ticker.toUpperCase());
   }
 
+  function handleRetry() {
+    setRetryKey(k => k + 1);
+  }
+
   function handleWatchlistRemove(ticker: string) {
     const next = watchlist.filter(t => t !== ticker);
     setWatchlist(next);
     saveWatchlist(next);
   }
 
+  const isQuotaError = error?.includes('quota') || error?.includes('rate limit');
+
   return (
     <div className="layout">
-      <Sidebar activeTicker={activeTicker} onSelect={handleSelect} watchlist={watchlist} onRemove={handleWatchlistRemove} />
+      <Sidebar
+        activeTicker={activeTicker}
+        onSelect={handleSelect}
+        watchlist={watchlist}
+        onRemove={handleWatchlistRemove}
+        onKeySaved={handleRetry}
+      />
 
       <div className="main-content">
         {loading && (
@@ -70,6 +84,12 @@ export default function App() {
             <div className="error-icon">⚠</div>
             <p className="error-title">Failed to load {activeTicker}</p>
             <p className="error-msg">{error}</p>
+            {isQuotaError && (
+              <p className="error-hint">
+                Enter a fresh API key in the sidebar under <strong>API KEY ▼</strong>, then click Retry.
+              </p>
+            )}
+            <button className="retry-btn" onClick={handleRetry}>↺ Retry</button>
           </div>
         )}
 
@@ -104,9 +124,18 @@ export default function App() {
           </>
         )}
 
-        {!data && !loading && !error && (
+        {!activeTicker && !loading && (
           <div className="empty-state">
-            <p>Enter a ticker in the sidebar to begin analysis.</p>
+            <div className="empty-logo">◆</div>
+            <h2 className="empty-title">Gotham Stock Picker</h2>
+            <p className="empty-sub">Analyze quality compounders across 10 fundamental metrics</p>
+            {!hasApiKey() && (
+              <div className="empty-key-warning">
+                <span className="empty-key-icon">🔑</span>
+                <span>Set your <strong>Alpha Vantage API key</strong> in the sidebar first — click <strong>API KEY ▼</strong> at the bottom left.</span>
+              </div>
+            )}
+            <p className="empty-prompt">Enter a ticker symbol in the sidebar to begin →</p>
           </div>
         )}
       </div>

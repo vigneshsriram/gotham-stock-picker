@@ -6,9 +6,10 @@ interface Props {
   onSelect: (t: string) => void;
   watchlist: string[];
   onRemove: (t: string) => void;
+  onKeySaved?: () => void;
 }
 
-export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove }: Props) {
+export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, onKeySaved }: Props) {
   const [draft, setDraft] = useState('');
   const [apiKey, setApiKeyState] = useState(() => getApiKey());
   const [apiKeyDraft, setApiKeyDraft] = useState('');
@@ -37,6 +38,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove }:
     setApiKeyDraft('');
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    if (activeTicker) onKeySaved?.();
   }
 
   const maskedKey = apiKey ? `${apiKey.slice(0, 4)}${'•'.repeat(Math.max(0, apiKey.length - 4))}` : 'Not set';
