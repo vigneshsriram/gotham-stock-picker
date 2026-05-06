@@ -60,7 +60,7 @@ export async function fetchOverview(symbol: string): Promise<AVOverview> {
   const cacheKey = `overview_${symbol}`;
   const cached = getCached<AVOverview>(cacheKey);
   if (cached) return cached;
-  await delay(300);
+  await delay(1100);
   const data = await avFetch({ function: 'OVERVIEW', symbol }) as AVOverview;
   if (!data.Symbol) throw new Error(`No overview data for ${symbol}`);
   setCache(cacheKey, data);
@@ -71,7 +71,7 @@ export async function fetchIncomeStatement(symbol: string): Promise<AVFundamenta
   const cacheKey = `income_${symbol}`;
   const cached = getCached<AVFundamental>(cacheKey);
   if (cached) return cached;
-  await delay(300);
+  await delay(1100);
   const data = await avFetch({ function: 'INCOME_STATEMENT', symbol }) as AVFundamental;
   if (!data.annualReports?.length) throw new Error(`No income statement data for ${symbol}`);
   setCache(cacheKey, data);
@@ -82,7 +82,7 @@ export async function fetchBalanceSheet(symbol: string): Promise<AVFundamental> 
   const cacheKey = `balance_${symbol}`;
   const cached = getCached<AVFundamental>(cacheKey);
   if (cached) return cached;
-  await delay(300);
+  await delay(1100);
   const data = await avFetch({ function: 'BALANCE_SHEET', symbol }) as AVFundamental;
   if (!data.annualReports?.length) throw new Error(`No balance sheet data for ${symbol}`);
   setCache(cacheKey, data);
@@ -93,7 +93,7 @@ export async function fetchCashFlow(symbol: string): Promise<AVFundamental> {
   const cacheKey = `cashflow_${symbol}`;
   const cached = getCached<AVFundamental>(cacheKey);
   if (cached) return cached;
-  await delay(300);
+  await delay(1100);
   const data = await avFetch({ function: 'CASH_FLOW', symbol }) as AVFundamental;
   if (!data.annualReports?.length) throw new Error(`No cash flow data for ${symbol}`);
   setCache(cacheKey, data);
@@ -104,7 +104,7 @@ export async function fetchGlobalQuote(symbol: string): Promise<number> {
   const cacheKey = `quote_${symbol}`;
   const cached = getCached<number>(cacheKey, QUOTE_TTL);
   if (cached !== null) return cached;
-  await delay(300);
+  await delay(1100);
   const data = await avFetch({ function: 'GLOBAL_QUOTE', symbol }) as Record<string, Record<string, string>>;
   const price = safeNum(data['Global Quote']?.['05. price']);
   if (Number.isFinite(price)) setCache(cacheKey, price);
