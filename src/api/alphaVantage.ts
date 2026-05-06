@@ -9,6 +9,10 @@ export function setApiKey(key: string) {
   if (key) localStorage.setItem(AV_KEY_STORAGE, key);
   else localStorage.removeItem(AV_KEY_STORAGE);
 }
+
+export function hasApiKey(): boolean {
+  return Boolean(localStorage.getItem(AV_KEY_STORAGE) || (import.meta.env.VITE_AV_KEY as string));
+}
 const BASE = 'https://www.alphavantage.co/query';
 const TTL = 24 * 60 * 60 * 1000;
 const QUOTE_TTL = 60 * 60 * 1000;

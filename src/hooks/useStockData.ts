@@ -6,7 +6,7 @@ import {
 } from '../api/alphaVantage';
 import { cagr, mean, calcROIC, calcDCF, calcAllScores } from '../utils/calculations';
 
-export function useStockData(symbol: string): { data: StockAnalysis | null; loading: boolean; error: string | null } {
+export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysis | null; loading: boolean; error: string | null } {
   const [data, setData] = useState<StockAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -220,7 +220,7 @@ export function useStockData(symbol: string): { data: StockAnalysis | null; load
 
     load();
     return () => { cancelled = true; };
-  }, [symbol]);
+  }, [symbol, retryKey]);
 
   return { data, loading, error };
 }
