@@ -1,4 +1,9 @@
 import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './lib/auth';
+import { loadWatchlistDB, addToWatchlistDB, removeFromWatchlistDB, loadApiKeyDB, saveApiKeyDB } from './lib/db';
+import { setApiKey } from './api/alphaVantage';
+import SignIn from './pages/SignIn';
+import AdminPanel from './pages/AdminPanel';
 import Sidebar from './components/Sidebar';
 import CompanyHeader from './components/CompanyHeader';
 import OverallScore from './components/OverallScore';
@@ -16,33 +21,29 @@ import { useStockData } from './hooks/useStockData';
 import { hasApiKey } from './api/alphaVantage';
 import './styles.css';
 
-const WATCHLIST_KEY = 'av_watchlist';
-
-function loadWatchlist(): string[] {
-  try {
-    const stored = localStorage.getItem(WATCHLIST_KEY);
-    return stored ? (JSON.parse(stored) as string[]) : [];
-  } catch { return []; }
-}
-
-function saveWatchlist(list: string[]) {
-  try { localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list)); } catch { /* ignore */ }
-}
-
-export default function App() {
+function Dashboard() {
+  const { user, isAdmin, signOut } = useAuth();
   const [activeTicker, setActiveTicker] = useState('');
   const [retryKey, setRetryKey] = useState(0);
-  const [watchlist, setWatchlist] = useState<string[]>(loadWatchlist);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [showAdmin, setShowAdmin] = useState(false);
   const { data, loading, error } = useStockData(activeTicker, retryKey);
 
+  // Load watchlist and API key from Supabase on login
   useEffect(() => {
-    if (!data) return;
-    setWatchlist(prev => {
-      if (prev.includes(data.symbol)) return prev;
-      const next = [data.symbol, ...prev].slice(0, 20);
-      saveWatchlist(next);
-      return next;
+    if (!user) return;
+    loadWatchlistDB(user.id).then(setWatchlist);
+    loadApiKeyDB(user.id).then(key => {
+      if (key) setApiKey(key);
     });
+  }, [user]);
+
+  useEffect(() => {
+    if (!data || !user) return;
+    if (watchlist.includes(data.symbol)) return;
+    const next = [data.symbol, ...watchlist].slice(0, 20);
+    setWatchlist(next);
+    addToWatchlistDB(user.id, data.symbol);
   }, [data]);
 
   function handleSelect(ticker: string) {
@@ -53,10 +54,14 @@ export default function App() {
     setRetryKey(k => k + 1);
   }
 
-  function handleWatchlistRemove(ticker: string) {
-    const next = watchlist.filter(t => t !== ticker);
-    setWatchlist(next);
-    saveWatchlist(next);
+  async function handleWatchlistRemove(ticker: string) {
+    setWatchlist(prev => prev.filter(t => t !== ticker));
+    if (user) await removeFromWatchlistDB(user.id, ticker);
+  }
+
+  async function handleKeySaved(key: string) {
+    if (user) await saveApiKeyDB(user.id, key);
+    handleRetry();
   }
 
   const isQuotaError = error?.includes('quota') || error?.includes('rate limit');
@@ -68,7 +73,10 @@ export default function App() {
         onSelect={handleSelect}
         watchlist={watchlist}
         onRemove={handleWatchlistRemove}
-        onKeySaved={handleRetry}
+        onKeySaved={handleKeySaved}
+        onSignOut={signOut}
+        isAdmin={isAdmin}
+        onAdmin={() => setShowAdmin(true)}
       />
 
       <div className="main-content">
@@ -139,6 +147,30 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
     </div>
+  );
+}
+
+function AppInner() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="auth-loading">
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  return user ? <Dashboard /> : <SignIn />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }

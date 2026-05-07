@@ -6,10 +6,13 @@ interface Props {
   onSelect: (t: string) => void;
   watchlist: string[];
   onRemove: (t: string) => void;
-  onKeySaved?: () => void;
+  onKeySaved?: (key: string) => void;
+  onSignOut?: () => void;
+  isAdmin?: boolean;
+  onAdmin?: () => void;
 }
 
-export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, onKeySaved }: Props) {
+export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, onKeySaved, onSignOut, isAdmin, onAdmin }: Props) {
   const [draft, setDraft] = useState('');
   const [apiKey, setApiKeyState] = useState(() => getApiKey());
   const [apiKeyDraft, setApiKeyDraft] = useState('');
@@ -38,7 +41,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
     setApiKeyDraft('');
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-    if (activeTicker) onKeySaved?.();
+    onKeySaved?.(key);
   }
 
   const maskedKey = apiKey ? `${apiKey.slice(0, 4)}${'•'.repeat(Math.max(0, apiKey.length - 4))}` : 'Not set';
@@ -114,6 +117,17 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
             </p>
           </div>
         )}
+      </div>
+
+      <div className="sidebar-footer">
+        {isAdmin && (
+          <button className="sidebar-footer-btn" onClick={onAdmin}>
+            ⚙ Admin
+          </button>
+        )}
+        <button className="sidebar-footer-btn sidebar-signout" onClick={onSignOut}>
+          Sign Out
+        </button>
       </div>
     </aside>
   );
