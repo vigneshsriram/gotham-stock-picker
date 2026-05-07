@@ -9,7 +9,6 @@ interface AuthCtx {
   loading: boolean;
   signInWithPassword: (email: string, password: string) => Promise<string | null>;
   signUp: (email: string, password: string) => Promise<string | null>;
-  signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -43,19 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error?.message ?? null;
   }
 
-  async function signInWithOAuth(provider: 'google' | 'github') {
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: window.location.origin },
-    });
-  }
-
   async function signOut() {
     await supabase.auth.signOut();
   }
 
   return (
-    <Ctx.Provider value={{ user, session, isAdmin, loading, signInWithPassword, signUp, signInWithOAuth, signOut }}>
+    <Ctx.Provider value={{ user, session, isAdmin, loading, signInWithPassword, signUp, signOut }}>
       {children}
     </Ctx.Provider>
   );
