@@ -6,10 +6,11 @@ import {
 } from '../api/alphaVantage';
 import { cagr, mean, calcROIC, calcDCF, calcAllScores } from '../utils/calculations';
 
-export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysis | null; loading: boolean; error: string | null } {
+export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysis | null; loading: boolean; error: string | null; status: string } {
   const [data, setData] = useState<StockAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
     if (!symbol) return;
@@ -19,13 +20,18 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
       setLoading(true);
       setError(null);
       setData(null);
+      setStatus('');
 
       try {
-        // Sequential calls — AV free tier is 5 req/min; Promise.all bypasses the per-function delays
+        setStatus('Fetching company overview…');
         const overview = await fetchOverview(symbol);
+        setStatus('Fetching income statement…');
         const incomeRaw = await fetchIncomeStatement(symbol);
+        setStatus('Fetching balance sheet…');
         const balanceRaw = await fetchBalanceSheet(symbol);
+        setStatus('Fetching cash flow…');
         const cashFlowRaw = await fetchCashFlow(symbol);
+        setStatus('Fetching current price…');
         const currentPrice = await fetchGlobalQuote(symbol);
 
         if (cancelled) return;
@@ -214,7 +220,7 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) { setLoading(false); setStatus(''); }
       }
     }
 
@@ -222,5 +228,5 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
     return () => { cancelled = true; };
   }, [symbol, retryKey]);
 
-  return { data, loading, error };
+  return { data, loading, error, status };
 }
