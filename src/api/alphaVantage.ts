@@ -37,12 +37,22 @@ function setCache(key: string, data: unknown): void {
   try { localStorage.setItem(`av_cache_${key}`, JSON.stringify({ data, ts: Date.now() })); } catch { /* ignore */ }
 }
 
-async function avFetch(params: Record<string, string>): Promise<unknown> {
+// Imported lazily to avoid circular deps — keyPool imports setApiKey from this file
+type PoolLoader = (force?: boolean) => Promise<void>;
+let _loadPoolKey: PoolLoader | null = null;
+export function registerPoolLoader(fn: PoolLoader) { _loadPoolKey = fn; }
+
+async function avFetch(params: Record<string, string>, isRetry = false): Promise<unknown> {
   const qs = new URLSearchParams({ ...params, apikey: getApiKey() }).toString();
   const res = await fetch(`${BASE}?${qs}`);
   if (!res.ok) throw new Error(`AV HTTP ${res.status}`);
   const json = await res.json();
   if (json['Note'] || json['Information']) {
+    // Auto-rotate to a fresh pool key and retry once
+    if (!isRetry && _loadPoolKey) {
+      await _loadPoolKey(true);
+      return avFetch(params, true);
+    }
     const resetHour = new Date();
     resetHour.setUTCHours(24, 0, 0, 0);
     const hoursLeft = Math.ceil((resetHour.getTime() - Date.now()) / 3_600_000);
@@ -60,7 +70,7 @@ export async function fetchOverview(symbol: string): Promise<AVOverview> {
   const cacheKey = `overview_${symbol}`;
   const cached = getCached<AVOverview>(cacheKey);
   if (cached) return cached;
-  await delay(1100);
+  await delay(3000);
   const data = await avFetch({ function: 'OVERVIEW', symbol }) as AVOverview;
   if (!data.Symbol) throw new Error(`No overview data for ${symbol}`);
   setCache(cacheKey, data);
@@ -71,7 +81,7 @@ export async function fetchIncomeStatement(symbol: string): Promise<AVFundamenta
   const cacheKey = `income_${symbol}`;
   const cached = getCached<AVFundamental>(cacheKey);
   if (cached) return cached;
-  await delay(1100);
+  await delay(3000);
   const data = await avFetch({ function: 'INCOME_STATEMENT', symbol }) as AVFundamental;
   if (!data.annualReports?.length) throw new Error(`No income statement data for ${symbol}`);
   setCache(cacheKey, data);
@@ -82,7 +92,7 @@ export async function fetchBalanceSheet(symbol: string): Promise<AVFundamental> 
   const cacheKey = `balance_${symbol}`;
   const cached = getCached<AVFundamental>(cacheKey);
   if (cached) return cached;
-  await delay(1100);
+  await delay(3000);
   const data = await avFetch({ function: 'BALANCE_SHEET', symbol }) as AVFundamental;
   if (!data.annualReports?.length) throw new Error(`No balance sheet data for ${symbol}`);
   setCache(cacheKey, data);
@@ -93,7 +103,7 @@ export async function fetchCashFlow(symbol: string): Promise<AVFundamental> {
   const cacheKey = `cashflow_${symbol}`;
   const cached = getCached<AVFundamental>(cacheKey);
   if (cached) return cached;
-  await delay(1100);
+  await delay(3000);
   const data = await avFetch({ function: 'CASH_FLOW', symbol }) as AVFundamental;
   if (!data.annualReports?.length) throw new Error(`No cash flow data for ${symbol}`);
   setCache(cacheKey, data);
@@ -104,7 +114,7 @@ export async function fetchGlobalQuote(symbol: string): Promise<number> {
   const cacheKey = `quote_${symbol}`;
   const cached = getCached<number>(cacheKey, QUOTE_TTL);
   if (cached !== null) return cached;
-  await delay(1100);
+  await delay(3000);
   const data = await avFetch({ function: 'GLOBAL_QUOTE', symbol }) as Record<string, Record<string, string>>;
   const price = safeNum(data['Global Quote']?.['05. price']);
   if (Number.isFinite(price)) setCache(cacheKey, price);

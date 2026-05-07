@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { setApiKey } from '../api/alphaVantage';
+import { setApiKey, registerPoolLoader } from '../api/alphaVantage';
 
 // Cached for the lifetime of the page session — refreshed on quota error
 let sessionKey: string | null = null;
@@ -18,3 +18,6 @@ export async function loadPoolKey(force = false): Promise<void> {
 export function clearPoolKeyCache() {
   sessionKey = null;
 }
+
+// Register so avFetch can auto-rotate on quota error
+registerPoolLoader(loadPoolKey);

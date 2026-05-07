@@ -26,7 +26,7 @@ function Dashboard() {
   const [retryKey, setRetryKey] = useState(0);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [showAdmin, setShowAdmin] = useState(false);
-  const { data, loading, error } = useStockData(activeTicker, retryKey);
+  const { data, loading, error, status } = useStockData(activeTicker, retryKey);
 
   // Load watchlist and a pool API key on login
   useEffect(() => {
@@ -78,7 +78,8 @@ function Dashboard() {
         {loading && (
           <div className="loading-state">
             <div className="spinner" />
-            <p className="loading-text">Fetching {activeTicker} data…</p>
+            <p className="loading-text">{status || `Fetching ${activeTicker} data…`}</p>
+            {status && <p className="loading-sub">{activeTicker} · 3s between requests</p>}
           </div>
         )}
 
