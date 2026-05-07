@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './lib/auth';
-import { loadWatchlistDB, addToWatchlistDB, removeFromWatchlistDB, loadApiKeyDB, saveApiKeyDB } from './lib/db';
-import { setApiKey } from './api/alphaVantage';
+import { loadWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } from './lib/db';
+import { loadPoolKey, clearPoolKeyCache } from './lib/keyPool';
 import SignIn from './pages/SignIn';
 import AdminPanel from './pages/AdminPanel';
 import Sidebar from './components/Sidebar';
@@ -18,7 +18,6 @@ import MoatScore from './components/metrics/MoatScore';
 import ManagementScore from './components/metrics/ManagementScore';
 import Valuation from './components/metrics/Valuation';
 import { useStockData } from './hooks/useStockData';
-import { hasApiKey } from './api/alphaVantage';
 import './styles.css';
 
 function Dashboard() {
@@ -29,13 +28,11 @@ function Dashboard() {
   const [showAdmin, setShowAdmin] = useState(false);
   const { data, loading, error } = useStockData(activeTicker, retryKey);
 
-  // Load watchlist and API key from Supabase on login
+  // Load watchlist and a pool API key on login
   useEffect(() => {
     if (!user) return;
     loadWatchlistDB(user.id).then(setWatchlist);
-    loadApiKeyDB(user.id).then(key => {
-      if (key) setApiKey(key);
-    });
+    loadPoolKey();
   }, [user]);
 
   useEffect(() => {
@@ -50,18 +47,17 @@ function Dashboard() {
     setActiveTicker(ticker.toUpperCase());
   }
 
-  function handleRetry() {
+  async function handleRetry() {
+    if (isQuotaError) {
+      clearPoolKeyCache();
+      await loadPoolKey(true);
+    }
     setRetryKey(k => k + 1);
   }
 
   async function handleWatchlistRemove(ticker: string) {
     setWatchlist(prev => prev.filter(t => t !== ticker));
     if (user) await removeFromWatchlistDB(user.id, ticker);
-  }
-
-  async function handleKeySaved(key: string) {
-    if (user) await saveApiKeyDB(user.id, key);
-    handleRetry();
   }
 
   const isQuotaError = error?.includes('quota') || error?.includes('rate limit');
@@ -73,7 +69,6 @@ function Dashboard() {
         onSelect={handleSelect}
         watchlist={watchlist}
         onRemove={handleWatchlistRemove}
-        onKeySaved={handleKeySaved}
         onSignOut={signOut}
         isAdmin={isAdmin}
         onAdmin={() => setShowAdmin(true)}
@@ -94,7 +89,7 @@ function Dashboard() {
             <p className="error-msg">{error}</p>
             {isQuotaError && (
               <p className="error-hint">
-                Enter a fresh API key in the sidebar under <strong>API KEY ▼</strong>, then click Retry.
+                All API keys are at their daily limit. Try again tomorrow or click Retry to switch keys.
               </p>
             )}
             <button className="retry-btn" onClick={handleRetry}>↺ Retry</button>
@@ -137,12 +132,6 @@ function Dashboard() {
             <div className="empty-logo">◆</div>
             <h2 className="empty-title">Gotham Stock Picker</h2>
             <p className="empty-sub">Analyze quality compounders across 10 fundamental metrics</p>
-            {!hasApiKey() && (
-              <div className="empty-key-warning">
-                <span className="empty-key-icon">🔑</span>
-                <span>Set your <strong>Alpha Vantage API key</strong> in the sidebar first — click <strong>API KEY ▼</strong> at the bottom left.</span>
-              </div>
-            )}
             <p className="empty-prompt">Enter a ticker symbol in the sidebar to begin →</p>
           </div>
         )}
