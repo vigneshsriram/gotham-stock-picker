@@ -110,8 +110,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
               </button>
             </form>
             <p className="sidebar-api-hint">
-              Free tier: 25 req/day · 5 req/min.<br />
-              Get a key at alphavantage.co
+              Get a key at financialmodelingprep.com
             </p>
           </div>
         )}
