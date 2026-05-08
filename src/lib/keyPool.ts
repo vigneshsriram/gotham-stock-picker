@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { setApiKey, registerPoolLoader } from '../api/alphaVantage';
+import { setApiKey, registerPoolLoader } from '../api/apiClient';
 
 // Cached for the lifetime of the page session — refreshed on quota error
 let sessionKey: string | null = null;

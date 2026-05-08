@@ -123,7 +123,7 @@ function Dashboard() {
             </section>
 
             <footer className="app-footer">
-              Data: Alpha Vantage | Cached 24h | Free tier: 25 req/day
+              Data: Financial Modeling Prep | Cached 24h
             </footer>
           </>
         )}

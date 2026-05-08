@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { StockAnalysis, AnnualData, DCFInputs } from '../types';
-import {
-  fetchOverview, fetchIncomeStatement, fetchBalanceSheet, fetchCashFlow, fetchGlobalQuote,
-  safeNum
-} from '../api/alphaVantage';
+import { fetchProfile, fetchIncomeStatements, fetchBalanceSheets, fetchCashFlows, fetchQuote } from '../api/fmp';
+import { safeNum } from '../api/apiClient';
 import { cagr, mean, calcROIC, calcDCF, calcAllScores } from '../utils/calculations';
 
 export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysis | null; loading: boolean; error: string | null; status: string } {
@@ -23,36 +21,28 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
       setStatus('');
 
       try {
-        setStatus('Fetching company overview…');
-        const overview = await fetchOverview(symbol);
+        setStatus('Fetching company profile…');
+        const profile = await fetchProfile(symbol);
         setStatus('Fetching income statement…');
-        const incomeRaw = await fetchIncomeStatement(symbol);
+        const incomeStatements = await fetchIncomeStatements(symbol);
         setStatus('Fetching balance sheet…');
-        const balanceRaw = await fetchBalanceSheet(symbol);
+        const balanceSheets = await fetchBalanceSheets(symbol);
         setStatus('Fetching cash flow…');
-        const cashFlowRaw = await fetchCashFlow(symbol);
+        const cashFlows = await fetchCashFlows(symbol);
         setStatus('Fetching current price…');
-        const currentPrice = await fetchGlobalQuote(symbol);
+        const currentPrice = await fetchQuote(symbol);
 
         if (cancelled) return;
 
-        const incomeByYear = new Map<string, Record<string, string>>();
-        for (const r of incomeRaw.annualReports) {
-          incomeByYear.set(r.fiscalDateEnding.slice(0, 4), r);
-        }
-        const balanceByYear = new Map<string, Record<string, string>>();
-        for (const r of balanceRaw.annualReports) {
-          balanceByYear.set(r.fiscalDateEnding.slice(0, 4), r);
-        }
-        const cashByYear = new Map<string, Record<string, string>>();
-        for (const r of cashFlowRaw.annualReports) {
-          cashByYear.set(r.fiscalDateEnding.slice(0, 4), r);
-        }
+        // Align by year (FMP returns newest-first; reverse to oldest-first)
+        const incomeByYear = new Map(incomeStatements.map(r => [r.date.slice(0, 4), r]));
+        const balanceByYear = new Map(balanceSheets.map(r => [r.date.slice(0, 4), r]));
+        const cashByYear = new Map(cashFlows.map(r => [r.date.slice(0, 4), r]));
 
-        const years = incomeRaw.annualReports
+        const sortedYears = [...incomeStatements]
           .slice(0, 10)
-          .map(r => r.fiscalDateEnding.slice(0, 4));
-        const sortedYears = [...years].reverse();
+          .map(r => r.date.slice(0, 4))
+          .reverse();
 
         const annualData: AnnualData[] = [];
 
@@ -60,67 +50,58 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
           const inc = incomeByYear.get(year);
           const bal = balanceByYear.get(year);
           const cf = cashByYear.get(year);
-
           if (!inc || !bal || !cf) continue;
 
-          const revenue = safeNum(inc.totalRevenue);
+          const revenue = safeNum(inc.revenue);
           const grossProfit = safeNum(inc.grossProfit);
           const operatingIncome = safeNum(inc.operatingIncome);
           const netIncome = safeNum(inc.netIncome);
           const incomeTax = safeNum(inc.incomeTaxExpense);
           const incomeBeforeTax = safeNum(inc.incomeBeforeTax);
+          const depreciation = safeNum(cf.depreciationAndAmortization ?? inc.depreciationAndAmortization);
 
-          const depreciation = safeNum(cf.depreciation);
           let ebitda = safeNum(inc.ebitda);
           if (!Number.isFinite(ebitda) || ebitda === 0) {
             ebitda = Number.isFinite(operatingIncome) && Number.isFinite(depreciation)
-              ? operatingIncome + depreciation
-              : NaN;
+              ? operatingIncome + depreciation : NaN;
           }
 
           const totalAssets = safeNum(bal.totalAssets);
-          const totalEquity = safeNum(bal.totalShareholderEquity);
+          const totalEquity = safeNum(bal.totalStockholdersEquity);
           const longTermDebt = safeNum(bal.longTermDebt);
-          const shortTermDebt = safeNum(bal.currentLongTermDebt);
-          const cash = (() => {
-            const v1 = safeNum(bal.cashAndCashEquivalentsAtCarryingValue);
-            const v2 = safeNum(bal.cashAndShortTermInvestments);
-            return Number.isFinite(v1) ? v1 : v2;
-          })();
+          const shortTermDebt = safeNum(bal.shortTermDebt);
+          const cash = safeNum(bal.cashAndCashEquivalents);
           const currentLiabilities = safeNum(bal.totalCurrentLiabilities);
-          const sharesOutstanding = safeNum(bal.commonStockSharesOutstanding);
+          const sharesOutstanding = safeNum(inc.weightedAverageShsOut);
 
-          const operatingCashFlow = safeNum(cf.operatingCashflow);
-          const capEx = Math.abs(safeNum(cf.capitalExpenditures));
-          const fcf = Number.isFinite(operatingCashFlow) && Number.isFinite(capEx)
-            ? operatingCashFlow - capEx
-            : NaN;
+          const operatingCashFlow = safeNum(cf.operatingCashFlow);
+          // FMP capitalExpenditure is already negative — use freeCashFlow if available
+          const capEx = Math.abs(safeNum(cf.capitalExpenditure));
+          const fcf = Number.isFinite(cf.freeCashFlow)
+            ? safeNum(cf.freeCashFlow)
+            : Number.isFinite(operatingCashFlow) && Number.isFinite(capEx)
+              ? operatingCashFlow - capEx : NaN;
 
-          const grossMargin = Number.isFinite(grossProfit) && Number.isFinite(revenue) && revenue !== 0
-            ? grossProfit / revenue : NaN;
-          const operatingMargin = Number.isFinite(operatingIncome) && Number.isFinite(revenue) && revenue !== 0
-            ? operatingIncome / revenue : NaN;
-          const netMargin = Number.isFinite(netIncome) && Number.isFinite(revenue) && revenue !== 0
-            ? netIncome / revenue : NaN;
-          const fcfMargin = Number.isFinite(fcf) && Number.isFinite(revenue) && revenue !== 0
-            ? fcf / revenue : NaN;
+          const grossMargin = revenue !== 0 ? grossProfit / revenue : NaN;
+          const operatingMargin = revenue !== 0 ? operatingIncome / revenue : NaN;
+          const netMargin = revenue !== 0 ? netIncome / revenue : NaN;
+          const fcfMargin = Number.isFinite(fcf) && revenue !== 0 ? fcf / revenue : NaN;
 
           const roic = calcROIC({ operatingIncome, incomeTax, incomeBeforeTax, totalAssets, currentLiabilities, cash });
 
           const netDebt = Number.isFinite(longTermDebt) && Number.isFinite(shortTermDebt) && Number.isFinite(cash)
             ? longTermDebt + shortTermDebt - cash
-            : Number.isFinite(longTermDebt) && Number.isFinite(cash)
-              ? longTermDebt - cash
-              : NaN;
+            : Number.isFinite(longTermDebt) && Number.isFinite(cash) ? longTermDebt - cash : NaN;
 
           const debtToEbitda = Number.isFinite(netDebt) && Number.isFinite(ebitda) && ebitda > 0
             ? netDebt / ebitda : NaN;
 
-          const capExPct = Number.isFinite(capEx) && Number.isFinite(revenue) && revenue !== 0
-            ? capEx / revenue : NaN;
+          const capExPct = Number.isFinite(capEx) && revenue !== 0 ? capEx / revenue : NaN;
 
-          const eps = Number.isFinite(netIncome) && Number.isFinite(sharesOutstanding) && sharesOutstanding > 0
-            ? netIncome / sharesOutstanding : NaN;
+          // Use FMP's reported EPS (diluted) directly; fall back to computed
+          const eps = Number.isFinite(inc.epsDiluted) ? inc.epsDiluted
+            : (Number.isFinite(netIncome) && Number.isFinite(sharesOutstanding) && sharesOutstanding > 0
+              ? netIncome / sharesOutstanding : NaN);
 
           annualData.push({
             year,
@@ -170,15 +151,18 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
 
         const intrinsicValue = calcDCF(latestFCF, latestShares, dcfInputs);
 
-        const marketCap = safeNum(overview.MarketCapitalization);
-        const peRatio = safeNum(overview.PERatio);
-        const pegRatio = safeNum(overview.PEGRatio);
-        const eps = safeNum(overview.EPS);
-        const beta = safeNum(overview.Beta);
-        const weekHigh52 = safeNum(overview['52WeekHigh']);
-        const weekLow52 = safeNum(overview['52WeekLow']);
-        const forwardPE = safeNum(overview.ForwardPE);
-        const dividendYield = safeNum(overview.DividendYield);
+        const marketCap = safeNum(profile.mktCap);
+        const peRatio = safeNum(profile.pe);
+        const eps = safeNum(profile.eps) || last.eps;
+        const beta = safeNum(profile.beta);
+        // FMP range format: "52wLow-52wHigh"
+        const [weekLow52, weekHigh52] = (profile.range ?? '').split('-').map(Number);
+        const dividendYield = safeNum(profile.dividendYield);
+        // FMP free tier doesn't provide PEG or forwardPE in profile — derive from data
+        const epsGrowthRate = Number.isFinite(epsCAGR) && epsCAGR > 0 ? epsCAGR * 100 : NaN;
+        const pegRatio = Number.isFinite(peRatio) && Number.isFinite(epsGrowthRate) && epsGrowthRate > 0
+          ? peRatio / epsGrowthRate : NaN;
+        const forwardPE = NaN; // not available on FMP free tier
 
         const scores = calcAllScores(annualData, {
           revenueCAGR, epsCAGR, fcfCAGR,
@@ -190,10 +174,10 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
 
         const result: StockAnalysis = {
           symbol,
-          name: overview.Name || symbol,
-          sector: overview.Sector || 'N/A',
-          industry: overview.Industry || 'N/A',
-          description: overview.Description || '',
+          name: profile.companyName || symbol,
+          sector: profile.sector || 'N/A',
+          industry: profile.industry || 'N/A',
+          description: profile.description || '',
           currentPrice: Number.isFinite(currentPrice) ? currentPrice : marketCap / last.sharesOutstanding,
           marketCap,
           peRatio,
