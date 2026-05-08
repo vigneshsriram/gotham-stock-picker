@@ -106,7 +106,7 @@ export async function fetchIncomeStatements(symbol: string): Promise<FMPIncomeSt
   const cached = getCached<FMPIncomeStatement[]>(cacheKey);
   if (cached) return cached;
   await delay(3000);
-  const data = await fmpFetch<FMPIncomeStatement[]>(`/income-statement?symbol=${symbol}&period=annual&limit=10`);
+  const data = await fmpFetch<FMPIncomeStatement[]>(`/income-statement?symbol=${symbol}&period=annual&limit=5`);
   if (!data.length) throw new Error(`No income statement data for ${symbol}`);
   setCache(cacheKey, data);
   return data;
@@ -117,7 +117,7 @@ export async function fetchBalanceSheets(symbol: string): Promise<FMPBalanceShee
   const cached = getCached<FMPBalanceSheet[]>(cacheKey);
   if (cached) return cached;
   await delay(3000);
-  const data = await fmpFetch<FMPBalanceSheet[]>(`/balance-sheet-statement?symbol=${symbol}&period=annual&limit=10`);
+  const data = await fmpFetch<FMPBalanceSheet[]>(`/balance-sheet-statement?symbol=${symbol}&period=annual&limit=5`);
   if (!data.length) throw new Error(`No balance sheet data for ${symbol}`);
   setCache(cacheKey, data);
   return data;
@@ -128,7 +128,7 @@ export async function fetchCashFlows(symbol: string): Promise<FMPCashFlow[]> {
   const cached = getCached<FMPCashFlow[]>(cacheKey);
   if (cached) return cached;
   await delay(3000);
-  const data = await fmpFetch<FMPCashFlow[]>(`/cash-flow-statement?symbol=${symbol}&period=annual&limit=10`);
+  const data = await fmpFetch<FMPCashFlow[]>(`/cash-flow-statement?symbol=${symbol}&period=annual&limit=5`);
   if (!data.length) throw new Error(`No cash flow data for ${symbol}`);
   setCache(cacheKey, data);
   return data;
