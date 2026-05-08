@@ -1,7 +1,6 @@
-import { getApiKey, getCached, setCache, registerPoolLoader, getRegisteredPoolLoader } from './apiClient';
+import { getApiKey, getCached, setCache, getRegisteredPoolLoader } from './apiClient';
 
 const BASE = 'https://financialmodelingprep.com/api/v3';
-const TTL = 24 * 60 * 60 * 1000;
 const QUOTE_TTL = 60 * 60 * 1000;
 
 function delay(ms: number) { return new Promise(r => setTimeout(r, ms)); }
