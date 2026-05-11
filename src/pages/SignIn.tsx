@@ -45,7 +45,7 @@ export default function SignIn() {
       <div className="auth-container">
         <div className="auth-card">
           <img src={logo} alt="Themoat" className="auth-logo-img" />
-          <p className="auth-subtitle">Quality Compounder Analysis</p>
+          <p className="auth-subtitle">THEMOAT</p>
 
           <div className="auth-tabs">
             <button
