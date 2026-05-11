@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { setApiKey } from '../api/apiClient';
 import { saveApiKeyDB } from '../lib/db';
+import logo from '../TheMoat-logo.png';
 
 interface Props {
   userId: string;
@@ -32,10 +33,7 @@ export default function Onboarding({ userId, onComplete }: Props) {
   return (
     <div className="onboarding-container">
       <div className="onboarding-card">
-        <div className="auth-logo" style={{ marginBottom: 4 }}>
-          <span className="sidebar-logo-icon">◆</span>
-          <span className="auth-logo-text">Themoat</span>
-        </div>
+        <img src={logo} alt="Themoat" className="auth-logo-img" style={{ marginBottom: 4 }} />
         <p className="auth-subtitle" style={{ marginBottom: 28 }}>One last step to get started</p>
 
         <div className="onboarding-step">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getApiKey, setApiKey } from '../api/apiClient';
+import logo from '../TheMoat-logo.png';
 
 interface Props {
   activeTicker: string;
@@ -50,8 +51,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <span className="sidebar-logo-icon">◆</span>
-        <span className="sidebar-logo-text">Themoat</span>
+        <img src={logo} alt="Themoat" className="sidebar-logo-img" />
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">×</button>
       </div>
 
