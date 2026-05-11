@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { setApiKey } from '../api/apiClient';
 import { saveApiKeyDB } from '../lib/db';
-import logo from '../TheMoat-logo.png';
+import logo from '../the-moat-logo2.png';
 
 interface Props {
   userId: string;
