@@ -34,7 +34,7 @@ export default function Onboarding({ userId, onComplete }: Props) {
       <div className="onboarding-card">
         <div className="auth-logo" style={{ marginBottom: 4 }}>
           <span className="sidebar-logo-icon">◆</span>
-          <span className="auth-logo-text">Gotham Stock Picker</span>
+          <span className="auth-logo-text">Themoat</span>
         </div>
         <p className="auth-subtitle" style={{ marginBottom: 28 }}>One last step to get started</p>
 

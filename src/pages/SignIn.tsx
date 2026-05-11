@@ -45,9 +45,9 @@ export default function SignIn() {
         <div className="auth-card">
           <div className="auth-logo">
             <span className="sidebar-logo-icon">◆</span>
-            <span className="auth-logo-text">Gotham</span>
+            <span className="auth-logo-text">Themoat</span>
           </div>
-          <p className="auth-subtitle">Stock Picker</p>
+          <p className="auth-subtitle">Quality Compounder Analysis</p>
 
           <div className="auth-tabs">
             <button

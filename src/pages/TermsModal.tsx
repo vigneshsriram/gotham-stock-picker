@@ -14,7 +14,7 @@ export default function TermsModal({ onClose }: Props) {
           <p className="terms-effective">Effective date: May 2026</p>
 
           <p>
-            Welcome to <strong>Gotham Stock Picker</strong> ("the App"). By creating an account and
+            Welcome to <strong>Themoat</strong> ("the App"). By creating an account and
             using this App you agree to the following terms. Please read them carefully. If you do
             not agree, do not use the App.
           </p>
@@ -30,7 +30,7 @@ export default function TermsModal({ onClose }: Props) {
 
           <h3>2. No Liability for Investment Decisions</h3>
           <p>
-            To the fullest extent permitted by law, Gotham Stock Picker and its operators shall not
+            To the fullest extent permitted by law, Themoat and its operators shall not
             be liable for any loss or damage — including investment losses — arising from your use of
             or reliance on information provided by the App. You bear sole responsibility for all
             investment decisions you make.
