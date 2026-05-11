@@ -1122,3 +1122,102 @@ body {
   .admin-overlay { padding: 0; align-items: flex-end; }
   .admin-panel { border-radius: 16px 16px 0 0; max-height: 85vh; }
 }
+
+/* ── Terms & Conditions ── */
+.terms-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 24px;
+}
+.terms-modal {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.terms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.terms-title { font-size: 17px; font-weight: 700; }
+.terms-body {
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.terms-body h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 6px;
+}
+.terms-body p { margin: 0; }
+.terms-body strong { color: var(--text); }
+.terms-effective { font-size: 11px; color: var(--muted); }
+.terms-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* Checkbox row on sign-up */
+.terms-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  cursor: pointer;
+}
+.terms-checkbox {
+  margin-top: 2px;
+  accent-color: var(--blue);
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+.terms-inline-link {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.terms-inline-link:hover { opacity: 0.8; }
+.terms-footer-note {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .terms-overlay { padding: 0; align-items: flex-end; }
+  .terms-modal { border-radius: 16px 16px 0 0; max-height: 90vh; }
+}

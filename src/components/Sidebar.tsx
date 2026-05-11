@@ -51,7 +51,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
     <aside className="sidebar">
       <div className="sidebar-logo">
         <span className="sidebar-logo-icon">◆</span>
-        <span className="sidebar-logo-text">Gotham</span>
+        <span className="sidebar-logo-text">Themoat</span>
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">×</button>
       </div>
 
