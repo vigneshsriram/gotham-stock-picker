@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../lib/auth';
 import TermsModal from './TermsModal';
-import logo from '../TheMoat-logo.png';
+import logo from '../the-moat-logo2.png';
 
 export default function SignIn() {
   const { signInWithPassword, signUp } = useAuth();

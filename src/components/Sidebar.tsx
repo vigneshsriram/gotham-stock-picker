@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getApiKey, setApiKey } from '../api/apiClient';
-import logo from '../TheMoat-logo.png';
+import logo from '../the-moat-logo2.png';
 
 interface Props {
   activeTicker: string;

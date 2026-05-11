@@ -20,7 +20,7 @@ import MoatScore from './components/metrics/MoatScore';
 import ManagementScore from './components/metrics/ManagementScore';
 import Valuation from './components/metrics/Valuation';
 import { useStockData } from './hooks/useStockData';
-import logo from './TheMoat-logo.png';
+import logo from './the-moat-logo2.png';
 import './styles.css';
 
 function Dashboard() {
