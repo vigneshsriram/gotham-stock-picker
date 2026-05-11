@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../lib/auth';
 import TermsModal from './TermsModal';
+import logo from '../TheMoat-logo.png';
 
 export default function SignIn() {
   const { signInWithPassword, signUp } = useAuth();
@@ -43,10 +44,7 @@ export default function SignIn() {
     <>
       <div className="auth-container">
         <div className="auth-card">
-          <div className="auth-logo">
-            <span className="sidebar-logo-icon">◆</span>
-            <span className="auth-logo-text">Themoat</span>
-          </div>
+          <img src={logo} alt="Themoat" className="auth-logo-img" />
           <p className="auth-subtitle">Quality Compounder Analysis</p>
 
           <div className="auth-tabs">

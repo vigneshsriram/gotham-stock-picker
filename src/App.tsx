@@ -20,6 +20,7 @@ import MoatScore from './components/metrics/MoatScore';
 import ManagementScore from './components/metrics/ManagementScore';
 import Valuation from './components/metrics/Valuation';
 import { useStockData } from './hooks/useStockData';
+import logo from './TheMoat-logo.png';
 import './styles.css';
 
 function Dashboard() {
@@ -122,7 +123,7 @@ function Dashboard() {
             <span /><span /><span />
           </button>
           <span className="mobile-header-title">
-            <span className="sidebar-logo-icon" style={{ fontSize: 14 }}>◆</span> Themoat
+            <img src={logo} alt="Themoat" className="mobile-header-logo" />
           </span>
           {activeTicker && <span className="mobile-header-ticker">{activeTicker}</span>}
         </div>
@@ -182,7 +183,7 @@ function Dashboard() {
 
         {!activeTicker && !loading && (
           <div className="empty-state">
-            <div className="empty-logo">◆</div>
+            <img src={logo} alt="Themoat" className="empty-logo-img" />
             <h2 className="empty-title">Themoat</h2>
             <p className="empty-sub">Analyze quality compounders across 10 fundamental metrics</p>
             <p className="empty-prompt">Enter a ticker symbol in the sidebar to begin →</p>

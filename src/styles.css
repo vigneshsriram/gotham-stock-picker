@@ -1221,3 +1221,27 @@ body {
   .terms-overlay { padding: 0; align-items: flex-end; }
   .terms-modal { border-radius: 16px 16px 0 0; max-height: 90vh; }
 }
+
+/* ── Logo image ── */
+.sidebar-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+.auth-logo-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+.mobile-header-logo {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+}
+.empty-logo-img {
+  height: 64px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
