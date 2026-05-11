@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { getApiKey, setApiKey } from '../api/alphaVantage';
+import { getApiKey, setApiKey } from '../api/apiClient';
 
 interface Props {
   activeTicker: string;
   onSelect: (t: string) => void;
   watchlist: string[];
   onRemove: (t: string) => void;
+  onKeySaved?: (key: string) => void;
   onSignOut?: () => void;
   isAdmin?: boolean;
   onAdmin?: () => void;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, onSignOut, isAdmin, onAdmin }: Props) {
+export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, onKeySaved, onSignOut, isAdmin, onAdmin, onClose }: Props) {
   const [draft, setDraft] = useState('');
   const [apiKey, setApiKeyState] = useState(() => getApiKey());
   const [apiKeyDraft, setApiKeyDraft] = useState('');
@@ -40,6 +42,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
     setApiKeyDraft('');
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    onKeySaved?.(key);
   }
 
   const maskedKey = apiKey ? `${apiKey.slice(0, 4)}${'•'.repeat(Math.max(0, apiKey.length - 4))}` : 'Not set';
@@ -49,6 +52,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
       <div className="sidebar-logo">
         <span className="sidebar-logo-icon">◆</span>
         <span className="sidebar-logo-text">Gotham</span>
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">×</button>
       </div>
 
       <form onSubmit={handleSubmit} className="sidebar-search">
@@ -84,7 +88,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
         ))}
       </ul>
 
-      {isAdmin && <div className="sidebar-api-section">
+      {(isAdmin || onKeySaved) && <div className="sidebar-api-section">
         <button
           className="sidebar-api-toggle"
           onClick={() => setShowApiKey(v => !v)}

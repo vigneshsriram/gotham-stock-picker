@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './lib/auth';
-import { loadWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } from './lib/db';
-import { loadPoolKey, clearPoolKeyCache } from './lib/keyPool';
+import { loadWatchlistDB, addToWatchlistDB, removeFromWatchlistDB, loadApiKeyDB, saveApiKeyDB } from './lib/db';
+import { loadPoolKey } from './lib/keyPool';
+import { setApiKey } from './api/apiClient';
 import SignIn from './pages/SignIn';
+import Onboarding from './pages/Onboarding';
 import AdminPanel from './pages/AdminPanel';
 import Sidebar from './components/Sidebar';
 import CompanyHeader from './components/CompanyHeader';
@@ -26,14 +28,30 @@ function Dashboard() {
   const [retryKey, setRetryKey] = useState(0);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hasKey, setHasKey] = useState<boolean | null>(null); // null = loading
   const { data, loading, error, status } = useStockData(activeTicker, retryKey);
 
-  // Load watchlist and a pool API key on login
+  // Load watchlist and API key on login
   useEffect(() => {
     if (!user) return;
     loadWatchlistDB(user.id).then(setWatchlist);
-    loadPoolKey();
-  }, [user]);
+
+    if (isAdmin) {
+      // Admin uses the shared key pool
+      loadPoolKey().then(() => setHasKey(true));
+    } else {
+      // Regular users use their own personal FMP key
+      loadApiKeyDB(user.id).then(key => {
+        if (key) {
+          setApiKey(key);
+          setHasKey(true);
+        } else {
+          setHasKey(false); // trigger onboarding
+        }
+      });
+    }
+  }, [user, isAdmin]);
 
   useEffect(() => {
     if (!data || !user) return;
@@ -45,10 +63,12 @@ function Dashboard() {
 
   function handleSelect(ticker: string) {
     setActiveTicker(ticker.toUpperCase());
+    setSidebarOpen(false); // collapse sidebar when a stock is searched
   }
 
   async function handleRetry() {
-    if (isQuotaError) {
+    if (isQuotaError && isAdmin) {
+      const { clearPoolKeyCache } = await import('./lib/keyPool');
       clearPoolKeyCache();
       await loadPoolKey(true);
     }
@@ -60,21 +80,53 @@ function Dashboard() {
     if (user) await removeFromWatchlistDB(user.id, ticker);
   }
 
-  const isQuotaError = error?.includes('quota') || error?.includes('rate limit');
+  async function handleKeySaved(key: string) {
+    if (user) await saveApiKeyDB(user.id, key);
+  }
+
+  const isQuotaError = error?.includes('quota') || error?.includes('rate limit') || error?.includes('exhausted');
+
+  // Show onboarding for regular users who haven't set a key yet
+  if (!isAdmin && hasKey === false) {
+    return <Onboarding userId={user!.id} onComplete={() => setHasKey(true)} />;
+  }
+
+  // Still loading key state
+  if (hasKey === null) {
+    return <div className="auth-loading"><div className="spinner" /></div>;
+  }
 
   return (
-    <div className="layout">
+    <div className={`layout${sidebarOpen ? ' sidebar-open' : ''}`}>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
       <Sidebar
         activeTicker={activeTicker}
         onSelect={handleSelect}
         watchlist={watchlist}
         onRemove={handleWatchlistRemove}
+        onKeySaved={isAdmin ? undefined : handleKeySaved}
         onSignOut={signOut}
         isAdmin={isAdmin}
         onAdmin={() => setShowAdmin(true)}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <div className="main-content">
+        {/* Mobile header bar */}
+        <div className="mobile-header">
+          <button className="mobile-menu-btn" onClick={() => setSidebarOpen(v => !v)} aria-label="Menu">
+            <span /><span /><span />
+          </button>
+          <span className="mobile-header-title">
+            <span className="sidebar-logo-icon" style={{ fontSize: 14 }}>◆</span> Gotham
+          </span>
+          {activeTicker && <span className="mobile-header-ticker">{activeTicker}</span>}
+        </div>
+
         {loading && (
           <div className="loading-state">
             <div className="spinner" />
@@ -147,11 +199,7 @@ function AppInner() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="auth-loading">
-        <div className="spinner" />
-      </div>
-    );
+    return <div className="auth-loading"><div className="spinner" /></div>;
   }
 
   return user ? <Dashboard /> : <SignIn />;
