@@ -39,6 +39,11 @@ body {
   padding: 24px;
 }
 
+/* Mobile header bar — hidden on desktop */
+.mobile-header {
+  display: none;
+}
+
 /* Sidebar */
 .sidebar {
   width: var(--sidebar-width);
@@ -60,6 +65,18 @@ body {
   gap: 8px;
   margin-bottom: 24px;
 }
+.sidebar-close-btn {
+  display: none;
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.sidebar-close-btn:hover { color: var(--text); }
 
 .sidebar-logo-icon {
   color: var(--blue);
@@ -913,3 +930,195 @@ body {
 }
 .admin-remove-btn:hover { background: rgba(239,68,68,0.2); }
 .admin-remove-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Onboarding ── */
+.onboarding-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 24px;
+}
+.onboarding-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.onboarding-step {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+.onboarding-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.onboarding-step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.onboarding-link {
+  color: var(--blue);
+  font-size: 13px;
+  text-decoration: none;
+}
+.onboarding-link:hover { text-decoration: underline; }
+.onboarding-key-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.onboarding-steps-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.onboarding-steps-toggle:hover { color: var(--text); background: var(--border); }
+.onboarding-steps-list {
+  width: 100%;
+  margin-top: 10px;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.onboarding-steps-list a { color: var(--blue); }
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card-bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: -24px -24px 20px;
+  }
+  .mobile-menu-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .mobile-menu-btn span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+  }
+  .mobile-header-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mobile-header-ticker {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue);
+    background: rgba(59,130,246,0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* Sidebar becomes a fixed slide-in drawer */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+  }
+  .layout.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+  .sidebar-close-btn {
+    display: block;
+  }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 40;
+  }
+
+  /* Main content: full width, no left offset */
+  .main-content {
+    padding: 24px 16px;
+    width: 100%;
+  }
+
+  /* Metrics grid: 1 column on mobile */
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Radar chart area in OverallScore */
+  .overall-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Company header: stack on mobile */
+  .company-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .company-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Auth / onboarding cards: full width */
+  .auth-card,
+  .onboarding-card {
+    padding: 32px 20px;
+  }
+
+  /* Admin panel: full screen on mobile */
+  .admin-overlay { padding: 0; align-items: flex-end; }
+  .admin-panel { border-radius: 16px 16px 0 0; max-height: 85vh; }
+}
