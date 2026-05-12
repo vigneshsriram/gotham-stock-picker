@@ -140,7 +140,7 @@ function Dashboard() {
           <div className="loading-state">
             <div className="spinner" />
             <p className="loading-text">{status || `Fetching ${activeTicker} data…`}</p>
-            {status && <p className="loading-sub">{activeTicker} · 3s between requests</p>}
+            {status && <p className="loading-sub">{activeTicker} · 1.3s between requests</p>}
           </div>
         )}
 
