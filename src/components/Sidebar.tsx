@@ -12,14 +12,16 @@ interface Props {
   isAdmin?: boolean;
   onAdmin?: () => void;
   onClose?: () => void;
+  onPaperTrading?: () => void;
 }
 
-export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, onKeySaved, onSignOut, isAdmin, onAdmin, onClose }: Props) {
+export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, onKeySaved, onSignOut, isAdmin, onAdmin, onClose, onPaperTrading }: Props) {
   const [draft, setDraft] = useState('');
   const [apiKey, setApiKeyState] = useState(() => getApiKey());
   const [apiKeyDraft, setApiKeyDraft] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [watchlistOpen, setWatchlistOpen] = useState(true);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -67,26 +69,35 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
         <button type="submit" className="sidebar-search-btn">→</button>
       </form>
 
-      <div className="sidebar-section-label">WATCHLIST</div>
-      <ul className="watchlist">
-        {watchlist.length === 0 && (
-          <li className="watchlist-empty">No tickers saved yet</li>
-        )}
-        {watchlist.map(ticker => (
-          <li
-            key={ticker}
-            className={`watchlist-item${ticker === activeTicker ? ' active' : ''}`}
-            onClick={() => onSelect(ticker)}
-          >
-            <span className="watchlist-ticker">{ticker}</span>
-            <button
-              className="watchlist-remove"
-              onClick={e => removeTicker(ticker, e)}
-              title="Remove"
-            >×</button>
-          </li>
-        ))}
-      </ul>
+      <button className="sidebar-section-toggle" onClick={() => setWatchlistOpen(v => !v)}>
+        <span>WATCHLIST</span>
+        <span className="sidebar-api-chevron">{watchlistOpen ? '▲' : '▼'}</span>
+      </button>
+      {watchlistOpen && (
+        <ul className="watchlist">
+          {watchlist.length === 0 && (
+            <li className="watchlist-empty">No tickers saved yet</li>
+          )}
+          {watchlist.map(ticker => (
+            <li
+              key={ticker}
+              className={`watchlist-item${ticker === activeTicker ? ' active' : ''}`}
+              onClick={() => onSelect(ticker)}
+            >
+              <span className="watchlist-ticker">{ticker}</span>
+              <button
+                className="watchlist-remove"
+                onClick={e => removeTicker(ticker, e)}
+                title="Remove"
+              >×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <button className="sidebar-paper-trading-btn" onClick={onPaperTrading}>
+        📊 Paper Trading
+      </button>
 
       {(isAdmin || onKeySaved) && <div className="sidebar-api-section">
         <button

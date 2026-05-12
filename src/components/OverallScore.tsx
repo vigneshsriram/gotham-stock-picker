@@ -7,17 +7,21 @@ interface Props {
 }
 
 const METRICS = [
-  { key: 'revenueGrowth', label: 'Revenue' },
-  { key: 'fcf', label: 'FCF' },
-  { key: 'operatingMargin', label: 'Op Margin' },
-  { key: 'roic', label: 'ROIC' },
-  { key: 'balanceSheet', label: 'Balance Sheet' },
-  { key: 'epsGrowth', label: 'EPS' },
-  { key: 'capEx', label: 'CapEx' },
-  { key: 'moat', label: 'Moat' },
-  { key: 'management', label: 'Management' },
-  { key: 'valuation', label: 'Valuation' },
+  { key: 'revenueGrowth', label: 'Revenue', anchor: 'metric-revenue' },
+  { key: 'fcf', label: 'FCF', anchor: 'metric-fcf' },
+  { key: 'operatingMargin', label: 'Op Margin', anchor: 'metric-opmargin' },
+  { key: 'roic', label: 'ROIC', anchor: 'metric-roic' },
+  { key: 'balanceSheet', label: 'Balance Sheet', anchor: 'metric-balance' },
+  { key: 'epsGrowth', label: 'EPS', anchor: 'metric-eps' },
+  { key: 'capEx', label: 'CapEx', anchor: 'metric-capex' },
+  { key: 'moat', label: 'Moat', anchor: 'metric-moat' },
+  { key: 'management', label: 'Management', anchor: 'metric-management' },
+  { key: 'valuation', label: 'Valuation', anchor: 'metric-valuation' },
 ] as const;
+
+function scrollToMetric(anchor: string) {
+  document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 export default function OverallScore({ scores }: Props) {
   const overall = scores.overall;
@@ -94,7 +98,7 @@ export default function OverallScore({ scores }: Props) {
           const c = scoreColor(s);
           return (
             <div key={m.key} className="score-breakdown-item">
-              <span className="score-breakdown-label">{m.label}</span>
+              <span className="score-breakdown-label score-breakdown-link" onClick={() => scrollToMetric(m.anchor)}>{m.label}</span>
               <div className="score-breakdown-bar-wrap">
                 <div className="score-breakdown-bar" style={{ width: `${s * 10}%`, background: c }} />
               </div>

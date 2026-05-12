@@ -6,6 +6,7 @@ import { setApiKey } from './api/apiClient';
 import SignIn from './pages/SignIn';
 import Onboarding from './pages/Onboarding';
 import AdminPanel from './pages/AdminPanel';
+import PaperTrading from './pages/PaperTrading';
 import Sidebar from './components/Sidebar';
 import CompanyHeader from './components/CompanyHeader';
 import OverallScore from './components/OverallScore';
@@ -29,6 +30,7 @@ function Dashboard() {
   const [retryKey, setRetryKey] = useState(0);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showPaperTrading, setShowPaperTrading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hasKey, setHasKey] = useState<boolean | null>(null); // null = loading
   const { data, loading, error, status } = useStockData(activeTicker, retryKey);
@@ -64,7 +66,8 @@ function Dashboard() {
 
   function handleSelect(ticker: string) {
     setActiveTicker(ticker.toUpperCase());
-    setSidebarOpen(false); // collapse sidebar when a stock is searched
+    setSidebarOpen(false);
+    setShowPaperTrading(false); // return to dashboard when selecting a stock
   }
 
   async function handleRetry() {
@@ -114,9 +117,14 @@ function Dashboard() {
         isAdmin={isAdmin}
         onAdmin={() => setShowAdmin(true)}
         onClose={() => setSidebarOpen(false)}
+        onPaperTrading={() => { setShowPaperTrading(true); setSidebarOpen(false); }}
       />
 
       <div className="main-content">
+        {showPaperTrading && (
+          <PaperTrading onBack={() => setShowPaperTrading(false)} />
+        )}
+        {!showPaperTrading && <>
         {/* Mobile header bar */}
         <div className="mobile-header">
           <button className="mobile-menu-btn" onClick={() => setSidebarOpen(v => !v)} aria-label="Menu">
@@ -162,16 +170,16 @@ function Dashboard() {
             <section className="metrics-section">
               <h2 className="section-title">Quality Metrics</h2>
               <div className="metrics-grid">
-                <RevenueGrowth data={data} />
-                <FCFGeneration data={data} />
-                <OperatingMargin data={data} />
-                <ROICMetric data={data} />
-                <BalanceSheet data={data} />
-                <EPSGrowth data={data} />
-                <CapExEfficiency data={data} />
-                <MoatScore data={data} />
-                <ManagementScore data={data} />
-                <Valuation data={data} />
+                <div id="metric-revenue"><RevenueGrowth data={data} /></div>
+                <div id="metric-fcf"><FCFGeneration data={data} /></div>
+                <div id="metric-opmargin"><OperatingMargin data={data} /></div>
+                <div id="metric-roic"><ROICMetric data={data} /></div>
+                <div id="metric-balance"><BalanceSheet data={data} /></div>
+                <div id="metric-eps"><EPSGrowth data={data} /></div>
+                <div id="metric-capex"><CapExEfficiency data={data} /></div>
+                <div id="metric-moat"><MoatScore data={data} /></div>
+                <div id="metric-management"><ManagementScore data={data} /></div>
+                <div id="metric-valuation"><Valuation data={data} /></div>
               </div>
             </section>
 
@@ -189,6 +197,7 @@ function Dashboard() {
             <p className="empty-prompt">Enter a ticker symbol in the sidebar to begin →</p>
           </div>
         )}
+        </>}
       </div>
 
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
