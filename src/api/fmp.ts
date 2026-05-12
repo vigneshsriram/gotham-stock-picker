@@ -145,17 +145,24 @@ export async function fetchQuote(symbol: string): Promise<number> {
   return price;
 }
 
-// Fetches quotes one at a time using the free single-symbol endpoint
 export async function fetchQuotes(symbols: string[]): Promise<Record<string, number>> {
   if (symbols.length === 0) return {};
   const result: Record<string, number> = {};
+  const toFetch: string[] = [];
 
   for (const sym of symbols) {
-    try {
-      const price = await fetchQuote(sym);
-      if (Number.isFinite(price)) result[sym] = price;
-    } catch {
-      // skip symbols that fail — don't block the rest
+    const cached = getCached<number>(`fmp_quote_${sym}`, QUOTE_TTL);
+    if (cached !== null) result[sym] = cached;
+    else toFetch.push(sym);
+  }
+
+  if (toFetch.length > 0) {
+    const data = await fmpFetch<{ symbol: string; price: number }[]>(`/quote?symbol=${toFetch.join(',')}`);
+    for (const item of data) {
+      if (Number.isFinite(item.price)) {
+        result[item.symbol] = item.price;
+        setCache(`fmp_quote_${item.symbol}`, item.price);
+      }
     }
   }
 
