@@ -33,7 +33,7 @@ export default function Onboarding({ userId, onComplete }: Props) {
   return (
     <div className="onboarding-container">
       <div className="onboarding-card">
-        <img src={logo} alt="Themoat" className="auth-logo-img" style={{ marginBottom: 4 }} />
+        <img src={logo} alt="TheMoat" className="auth-logo-img" style={{ marginBottom: 4 }} />
         <p className="auth-subtitle" style={{ marginBottom: 28 }}>One last step to get started</p>
 
         <div className="onboarding-step">

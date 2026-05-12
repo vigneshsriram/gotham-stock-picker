@@ -53,7 +53,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <img src={logo} alt="Themoat" className="sidebar-logo-img" />
+        <img src={logo} alt="TheMoat" className="sidebar-logo-img" />
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">×</button>
       </div>
 
