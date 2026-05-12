@@ -131,7 +131,7 @@ function Dashboard() {
             <span /><span /><span />
           </button>
           <span className="mobile-header-title">
-            <img src={logo} alt="Themoat" className="mobile-header-logo" />
+            <img src={logo} alt="TheMoat" className="mobile-header-logo" />
           </span>
           {activeTicker && <span className="mobile-header-ticker">{activeTicker}</span>}
         </div>
@@ -191,8 +191,8 @@ function Dashboard() {
 
         {!activeTicker && !loading && (
           <div className="empty-state">
-            <img src={logo} alt="Themoat" className="empty-logo-img" />
-            <h2 className="empty-title">Themoat</h2>
+            <img src={logo} alt="TheMoat" className="empty-logo-img" />
+            <h2 className="empty-title">TheMoat</h2>
             <p className="empty-sub">Analyze quality compounders across 10 fundamental metrics</p>
             <p className="empty-prompt">Enter a ticker symbol in the sidebar to begin →</p>
           </div>

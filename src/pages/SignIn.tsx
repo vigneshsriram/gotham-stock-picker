@@ -44,7 +44,7 @@ export default function SignIn() {
     <>
       <div className="auth-container">
         <div className="auth-card">
-          <img src={logo} alt="Themoat" className="auth-logo-img" />
+          <img src={logo} alt="TheMoat" className="auth-logo-img" />
           <p className="auth-subtitle">THEMOAT</p>
 
           <div className="auth-tabs">
