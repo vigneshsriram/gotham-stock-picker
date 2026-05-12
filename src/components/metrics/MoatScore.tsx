@@ -47,8 +47,31 @@ export default function MoatScore({ data }: Props) {
 
   const s = data.scores;
 
+  const summary = "Economic moat is the durable competitive advantage that protects a business from rivals. Wide moats — brands, networks, switching costs — let companies sustain premium margins for decades.";
+
+  const explanation = (
+    <div className="me-body">
+      <p className="me-p"><strong>What it measures:</strong> A composite of gross margin, operating margin, and ROIC — three proxies for competitive durability. High margins that persist over time signal a business with pricing power that competitors haven't been able to erode.</p>
+      <p className="me-p"><strong>Types of moats:</strong></p>
+      <ul className="me-list">
+        <li><strong>Network effects</strong> — value increases with users (Visa, Meta, Airbnb)</li>
+        <li><strong>Switching costs</strong> — painful/expensive to leave (Salesforce, Oracle, Adobe)</li>
+        <li><strong>Intangible assets</strong> — brands, patents, licenses (Coca-Cola, Disney, Moody's)</li>
+        <li><strong>Cost advantages</strong> — structurally cheaper to produce (Amazon AWS, Costco)</li>
+        <li><strong>Efficient scale</strong> — niche market too small for competition to bother (Veeva)</li>
+      </ul>
+      <p className="me-p"><strong>Example:</strong> Moody's has maintained 40–50% operating margins for 20 years. Every bond issued globally requires a rating — and there are only three credible rating agencies. That oligopoly is a textbook moat backed by regulation and trust.</p>
+      <p className="me-p"><strong>Scoring thresholds:</strong></p>
+      <ul className="me-list">
+        <li><strong>10/10</strong> — Gross margin &gt;60%, Op margin &gt;25%, ROIC &gt;20%</li>
+        <li><strong>7/10</strong> — Strong margins, slightly below elite thresholds</li>
+        <li><strong>3/10</strong> — Average margins, competitive industry</li>
+      </ul>
+    </div>
+  );
+
   return (
-    <MetricCard number={8} title="Moat Score" score={data.scores.moat} footer={footer}>
+    <MetricCard number={8} title="Moat Score" score={data.scores.moat} footer={footer} summary={summary} explanation={explanation}>
       <ResponsiveContainer width="100%" height={150}>
         <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <CartesianGrid stroke="#1a1a2e" vertical={false} />

@@ -40,8 +40,26 @@ export default function OperatingMargin({ data }: Props) {
     </div>
   );
 
+  const summary = "Operating margin shows how much profit a company keeps from each dollar of revenue after running the business — a key signal of pricing power and cost discipline.";
+
+  const explanation = (
+    <div className="me-body">
+      <p className="me-p"><strong>What it measures:</strong> Operating Income ÷ Revenue. This card shows both gross margin (revenue minus cost of goods) and operating margin (after all operating expenses including R&D and SG&A).</p>
+      <p className="me-p"><strong>Why it matters:</strong> High and stable operating margins are a hallmark of durable competitive advantages. A company with 30%+ operating margins has significant pricing power and/or structural cost advantages that competitors struggle to replicate.</p>
+      <p className="me-p"><strong>Example:</strong> Microsoft's operating margin expanded from ~25% in 2017 to ~45% in 2024 as its Azure and Office 365 subscription businesses scaled — showing the power of software economics at scale.</p>
+      <p className="me-p"><strong>Scoring thresholds:</strong></p>
+      <ul className="me-list">
+        <li><strong>10/10</strong> — Operating margin ≥ 30%</li>
+        <li><strong>7/10</strong> — Margin 15–30%</li>
+        <li><strong>4/10</strong> — Margin 8–15%</li>
+        <li><strong>1/10</strong> — Below 5% or declining trend</li>
+      </ul>
+      <p className="me-p"><strong>Watch out for:</strong> Margin expansion driven by cutting R&D — that can boost short-term profits while hollowing out future growth. Also compare margins to industry peers, since retail and airlines structurally operate at low margins.</p>
+    </div>
+  );
+
   return (
-    <MetricCard number={3} title="Operating Margin" score={data.scores.operatingMargin} footer={footer}>
+    <MetricCard number={3} title="Operating Margin" score={data.scores.operatingMargin} footer={footer} summary={summary} explanation={explanation}>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <defs>
