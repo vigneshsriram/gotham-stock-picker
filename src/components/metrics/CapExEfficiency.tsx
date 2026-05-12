@@ -43,8 +43,26 @@ export default function CapExEfficiency({ data }: Props) {
     </div>
   );
 
+  const summary = "Capital expenditure efficiency shows how much a company spends on physical assets relative to revenue. Asset-light businesses keep more cash and compound faster.";
+
+  const explanation = (
+    <div className="me-body">
+      <p className="me-p"><strong>What it measures:</strong> CapEx as a percentage of total assets and as a percentage of revenue over time. Lower CapEx intensity means the business can grow without constantly reinvesting in expensive physical infrastructure.</p>
+      <p className="me-p"><strong>Why it matters:</strong> Asset-light businesses (software, marketplaces, brands) require little capital to grow and generate high returns on incremental investment. Asset-heavy businesses (airlines, utilities, manufacturers) must constantly spend just to maintain what they have.</p>
+      <p className="me-p"><strong>Example:</strong> Booking Holdings (hotels.com) owns zero hotels but earns billions in profit. Compare this to Marriott, which owns and operates physical properties requiring constant maintenance CapEx. The asset-light model wins on returns every time at scale.</p>
+      <p className="me-p"><strong>Scoring thresholds:</strong></p>
+      <ul className="me-list">
+        <li><strong>10/10</strong> — CapEx/Assets &lt; 3% (truly asset-light)</li>
+        <li><strong>7/10</strong> — CapEx/Assets 3–5%</li>
+        <li><strong>4/10</strong> — CapEx/Assets 5–10%</li>
+        <li><strong>1/10</strong> — CapEx/Assets &gt; 15% (capital-intensive)</li>
+      </ul>
+      <p className="me-p"><strong>Watch out for:</strong> Companies under-investing in CapEx to look asset-light in the short term — this can lead to deteriorating infrastructure or competitive disadvantage. Also distinguish maintenance CapEx (required to stay alive) from growth CapEx (optional, earns returns).</p>
+    </div>
+  );
+
   return (
-    <MetricCard number={7} title="CapEx Efficiency" score={data.scores.capEx} footer={footer}>
+    <MetricCard number={7} title="CapEx Efficiency" score={data.scores.capEx} footer={footer} summary={summary} explanation={explanation}>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <CartesianGrid stroke="#1a1a2e" vertical={false} />

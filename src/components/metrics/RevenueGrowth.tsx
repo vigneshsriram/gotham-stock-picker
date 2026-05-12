@@ -37,8 +37,25 @@ export default function RevenueGrowth({ data }: Props) {
     </div>
   );
 
+  const summary = "Measures how fast the company's top-line sales are growing. Consistent growth signals rising demand and an expanding business.";
+
+  const explanation = (
+    <div className="me-body">
+      <p className="me-p"><strong>What it measures:</strong> The compound annual growth rate (CAGR) of revenue over 10 years, plus the most recent year-over-year change.</p>
+      <p className="me-p"><strong>Why it matters:</strong> Revenue growth is the foundation of compounding. A company that consistently grows its sales at 10%+ per year doubles revenue roughly every 7 years, giving earnings and cash flow room to compound alongside it.</p>
+      <p className="me-p"><strong>Scoring thresholds:</strong></p>
+      <ul className="me-list">
+        <li><strong>10/10</strong> — 10-yr CAGR ≥ 15% (e.g. Nvidia 2015–2024)</li>
+        <li><strong>7/10</strong> — CAGR 10–15% (e.g. Microsoft, Apple)</li>
+        <li><strong>4/10</strong> — CAGR 5–10% (steady but not exceptional)</li>
+        <li><strong>1/10</strong> — CAGR below 5% or declining revenue</li>
+      </ul>
+      <p className="me-p"><strong>Watch out for:</strong> Revenue boosted by acquisitions (inorganic growth), one-time licensing deals, or foreign exchange tailwinds. Look for organic, recurring revenue growth.</p>
+    </div>
+  );
+
   return (
-    <MetricCard number={1} title="Revenue Growth" score={data.scores.revenueGrowth} footer={footer}>
+    <MetricCard number={1} title="Revenue Growth" score={data.scores.revenueGrowth} footer={footer} summary={summary} explanation={explanation}>
       <ResponsiveContainer width="100%" height={200}>
         <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <CartesianGrid stroke="#1a1a2e" vertical={false} />

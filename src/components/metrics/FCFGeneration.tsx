@@ -34,8 +34,26 @@ export default function FCFGeneration({ data }: Props) {
     </div>
   );
 
+  const summary = "Free cash flow is the real cash a business generates after reinvestment. It's what's left to reward shareholders — harder to fake than earnings.";
+
+  const explanation = (
+    <div className="me-body">
+      <p className="me-p"><strong>What it measures:</strong> Free Cash Flow = Operating Cash Flow − Capital Expenditures. This card tracks FCF vs. operating cash flow over time and the FCF margin (FCF as % of revenue).</p>
+      <p className="me-p"><strong>Why it matters:</strong> Earnings can be manipulated with accounting choices, but cash is harder to fake. A business that reliably converts revenue into free cash flow can fund dividends, buybacks, and acquisitions without needing external capital.</p>
+      <p className="me-p"><strong>Example:</strong> Apple generates ~$100B in FCF on ~$400B revenue — a 25% FCF margin. That cash funded $600B+ in buybacks over the past decade, directly compounding shareholder value.</p>
+      <p className="me-p"><strong>Scoring thresholds:</strong></p>
+      <ul className="me-list">
+        <li><strong>10/10</strong> — FCF margin ≥ 20% consistently</li>
+        <li><strong>7/10</strong> — FCF margin 10–20%</li>
+        <li><strong>4/10</strong> — FCF margin 5–10%</li>
+        <li><strong>1/10</strong> — Negative or near-zero FCF</li>
+      </ul>
+      <p className="me-p"><strong>Watch out for:</strong> High earnings but low FCF — a sign of aggressive revenue recognition or high working capital needs. Also watch for FCF spikes from one-time asset sales.</p>
+    </div>
+  );
+
   return (
-    <MetricCard number={2} title="FCF Generation" score={data.scores.fcf} footer={footer}>
+    <MetricCard number={2} title="FCF Generation" score={data.scores.fcf} footer={footer} summary={summary} explanation={explanation}>
       <ResponsiveContainer width="100%" height={200}>
         <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <defs>

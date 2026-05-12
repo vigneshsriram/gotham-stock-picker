@@ -54,8 +54,31 @@ export default function ManagementScore({ data }: Props) {
     </div>
   );
 
+  const summary = "Great management allocates capital well and treats shareholders as partners. This tracks FCF conversion and whether management dilutes investors or returns cash to them.";
+
+  const explanation = (
+    <div className="me-body">
+      <p className="me-p"><strong>What it measures:</strong> Two signals of capital allocation quality: (1) FCF margin trend — are managers converting more revenue to cash over time? (2) Indexed share count — is the share count shrinking (buybacks) or growing (dilution)?</p>
+      <p className="me-p"><strong>Why it matters:</strong> Even a great business can be destroyed by poor capital allocation. A management team that issues stock recklessly, overpays for acquisitions, or sits on hoards of idle cash destroys long-term shareholder value. The best managers think like owners.</p>
+      <p className="me-p"><strong>Example:</strong> Apple's Tim Cook era has seen the share count fall from ~26B shares in 2013 to ~15B in 2024 via buybacks — a 42% reduction. Each remaining share now owns a larger piece of the business, boosting EPS even if net income were flat.</p>
+      <p className="me-p"><strong>Green flags:</strong></p>
+      <ul className="me-list">
+        <li>Consistent share buybacks below intrinsic value</li>
+        <li>Rising FCF margins over time</li>
+        <li>Acquisitions at reasonable prices with clear strategic rationale</li>
+        <li>Management compensation tied to ROIC or FCF per share</li>
+      </ul>
+      <p className="me-p"><strong>Red flags:</strong></p>
+      <ul className="me-list">
+        <li>Frequent equity issuances diluting existing shareholders</li>
+        <li>Empire-building acquisitions at inflated prices</li>
+        <li>Declining FCF despite growing revenue (operational deterioration)</li>
+      </ul>
+    </div>
+  );
+
   return (
-    <MetricCard number={9} title="Management Quality" score={data.scores.management} footer={footer}>
+    <MetricCard number={9} title="Management Quality" score={data.scores.management} footer={footer} summary={summary} explanation={explanation}>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <CartesianGrid stroke="#1a1a2e" vertical={false} />

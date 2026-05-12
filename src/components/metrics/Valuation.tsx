@@ -101,8 +101,26 @@ export default function Valuation({ data }: Props) {
     </div>
   );
 
+  const summary = "Valuation tells you what price you're paying for the business. Even a great company is a bad investment if you overpay — use the DCF to find a margin of safety.";
+
+  const explanation = (
+    <div className="me-body">
+      <p className="me-p"><strong>What it measures:</strong> A Discounted Cash Flow (DCF) model estimates intrinsic value by projecting future free cash flows and discounting them back to today. It also shows P/E, PEG ratio, EV/FCF, and FCF Yield for quick cross-checks.</p>
+      <p className="me-p"><strong>How the DCF works:</strong> You set three inputs — (1) expected FCF growth rate over 10 years, (2) discount rate (your required annual return), and (3) terminal growth rate after year 10. The model calculates what the stock is worth today given those assumptions.</p>
+      <p className="me-p"><strong>Key multiples explained:</strong></p>
+      <ul className="me-list">
+        <li><strong>P/E</strong> — price per dollar of earnings. High P/E is only justified if growth is high.</li>
+        <li><strong>PEG</strong> — P/E ÷ growth rate. Below 1.0 often signals undervaluation relative to growth.</li>
+        <li><strong>EV/FCF</strong> — enterprise value relative to free cash flow. More complete than P/E as it includes debt.</li>
+        <li><strong>FCF Yield</strong> — FCF ÷ market cap. Like a bond yield for stocks — higher is better value.</li>
+      </ul>
+      <p className="me-p"><strong>Example:</strong> A stock at 30× P/E sounds expensive, but if it grows earnings at 25% per year, its PEG is only 1.2 — reasonable. The same 30× P/E on a 5% grower gives a PEG of 6.0 — wildly overvalued.</p>
+      <p className="me-p"><strong>Margin of safety:</strong> Always demand a 20–30% discount to your DCF estimate. Models are wrong — the margin of safety is your protection against optimistic assumptions.</p>
+    </div>
+  );
+
   return (
-    <MetricCard number={10} title="Valuation" score={data.scores.valuation} footer={footer}>
+    <MetricCard number={10} title="Valuation" score={data.scores.valuation} footer={footer} summary={summary} explanation={explanation}>
       <div className="valuation-body">
         <div className="dcf-sliders">
           <Slider label="FCF Growth Rate" value={growth} min={0.01} max={0.25} step={0.005}
