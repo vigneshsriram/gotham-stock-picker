@@ -1910,3 +1910,9 @@ body {
   .peer-cards-grid { grid-template-columns: 1fr 1fr; }
   .peer-quad { display: none; }
 }
+
+.peer-empty-state {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 20px 0 8px;
+}
