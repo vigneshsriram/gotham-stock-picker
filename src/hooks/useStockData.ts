@@ -151,7 +151,8 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
 
         const intrinsicValue = calcDCF(latestFCF, latestShares, dcfInputs);
 
-        const marketCap = safeNum(profile.mktCap);
+        // FMP stable API returns market cap as either `mktCap` or `marketCap`
+        const marketCap = safeNum(profile.mktCap) || safeNum(profile.marketCap);
         const peRatio = safeNum(profile.pe);
         const eps = safeNum(profile.eps) || last.eps;
         const beta = safeNum(profile.beta);
