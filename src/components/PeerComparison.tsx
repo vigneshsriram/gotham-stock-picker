@@ -87,12 +87,16 @@ export default function PeerComparison({ data, onSelect }: Props) {
   const [loading, setLoading] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [noPeersFound, setNoPeersFound] = useState(false);
+  const [peerError, setPeerError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
     setPeers([]);
     setLoadedCount(0);
     setTotalCount(0);
+    setNoPeersFound(false);
+    setPeerError('');
     setLoading(true);
 
     async function load() {
@@ -100,8 +104,14 @@ export default function PeerComparison({ data, onSelect }: Props) {
         const tickers = await fetchPeers(data.symbol);
         const limited = tickers.slice(0, 5);
         if (cancelled) return;
-        setTotalCount(limited.length);
 
+        if (limited.length === 0) {
+          setNoPeersFound(true);
+          setLoading(false);
+          return;
+        }
+
+        setTotalCount(limited.length);
         const results: FMPPeerSummary[] = [];
         for (const ticker of limited) {
           if (cancelled) return;
@@ -116,8 +126,8 @@ export default function PeerComparison({ data, onSelect }: Props) {
             if (!cancelled) setLoadedCount(c => c + 1);
           }
         }
-      } catch {
-        // silently hide section if peers can't load
+      } catch (e) {
+        if (!cancelled) setPeerError(e instanceof Error ? e.message : 'Could not load peer data');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -170,8 +180,6 @@ export default function PeerComparison({ data, onSelect }: Props) {
   const xMid = allX.length ? (Math.max(...allX) + Math.min(...allX)) / 2 : 0.15;
   const yMid = allY.length ? (Math.max(...allY) + Math.min(...allY)) / 2 : 0.10;
 
-  if (!loading && peers.length === 0) return null;
-
   return (
     <section className="peer-section">
       <div className="peer-section-header">
@@ -185,6 +193,13 @@ export default function PeerComparison({ data, onSelect }: Props) {
           <span className="peer-loading-badge">Finding peers…</span>
         )}
       </div>
+
+      {peerError && (
+        <div className="peer-empty-state">⚠ {peerError}</div>
+      )}
+      {!loading && !peerError && noPeersFound && (
+        <div className="peer-empty-state">No peer data available for {data.symbol}.</div>
+      )}
 
       {peerPoints.length > 0 && (
         <>
