@@ -133,7 +133,11 @@ export default function PeerComparison({ data, onSelect }: Props) {
           }
         }
       } catch (e) {
-        if (!cancelled) setPeerError(e instanceof Error ? e.message : 'Could not load peer data');
+        const msg = e instanceof Error ? e.message : '';
+        // Suppress premium errors — just means no peers available on this plan
+        if (!cancelled && msg !== 'PREMIUM_REQUIRED') {
+          setPeerError(msg || 'Could not load peer data');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -207,7 +211,7 @@ export default function PeerComparison({ data, onSelect }: Props) {
         <div className="peer-empty-state">No peer data available for {data.symbol}.</div>
       )}
 
-      {peerPoints.length > 0 && (
+      {(!loading || peerPoints.length > 0) && !noPeersFound && !peerError && (
         <>
           {/* Scatter plot */}
           <div className="peer-scatter-card">

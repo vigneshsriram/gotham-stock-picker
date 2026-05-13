@@ -13,8 +13,13 @@ async function fmpFetch<T>(path: string, isRetry = false): Promise<T> {
 
   if (json?.['Error Message']) {
     const msg = json['Error Message'] as string;
-    if (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('upgrade')) {
-      // Quota hit — auto-rotate key and retry once
+    const msgLower = msg.toLowerCase();
+    // Premium subscription error — not a quota issue, skip gracefully
+    if (msgLower.includes('premium') || msgLower.includes('subscription') || msgLower.includes('special endpoint')) {
+      throw new Error('PREMIUM_REQUIRED');
+    }
+    // Quota / rate-limit — rotate key and retry once
+    if (msgLower.includes('limit') || msgLower.includes('upgrade')) {
       const loader = getPoolLoader();
       if (!isRetry && loader) {
         await loader(true);
