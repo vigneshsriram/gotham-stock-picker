@@ -160,16 +160,13 @@ export interface FMPPeerSummary {
 export async function fetchPeers(symbol: string): Promise<string[]> {
   const cacheKey = `fmp_peers_${symbol}`;
   const cached = getCached<string[]>(cacheKey);
-  if (cached) return cached;
+  if (cached && cached.length > 0) return cached; // never return a cached empty array
   await delay(1300);
-  try {
-    const data = await fmpFetch<{ symbol: string; peersList: string[] }[]>(`/stock-peers?symbol=${symbol}`);
-    const peers = data[0]?.peersList ?? [];
-    setCache(cacheKey, peers);
-    return peers;
-  } catch {
-    return [];
-  }
+  // FMP returns: [{ symbol: "AAPL", peersList: ["MSFT", ...] }]
+  const data = await fmpFetch<{ symbol: string; peersList: string[] }[]>(`/stock-peers?symbol=${symbol}`);
+  const peers = data[0]?.peersList ?? [];
+  if (peers.length > 0) setCache(cacheKey, peers); // only cache non-empty results
+  return peers;
 }
 
 export async function fetchPeerSummary(symbol: string): Promise<FMPPeerSummary> {
