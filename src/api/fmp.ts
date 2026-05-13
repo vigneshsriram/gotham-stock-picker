@@ -162,9 +162,9 @@ export async function fetchPeers(symbol: string): Promise<string[]> {
   const cached = getCached<string[]>(cacheKey);
   if (cached && cached.length > 0) return cached; // never return a cached empty array
   await delay(1300);
-  // FMP returns: [{ symbol: "AAPL", peersList: ["MSFT", ...] }]
-  const data = await fmpFetch<{ symbol: string; peersList: string[] }[]>(`/stock-peers?symbol=${symbol}`);
-  const peers = data[0]?.peersList ?? [];
+  // FMP returns: [{ symbol: "DIS", companyName: "...", price: ..., mktCap: ... }, ...]
+  const data = await fmpFetch<{ symbol: string }[]>(`/stock-peers?symbol=${symbol}`);
+  const peers = data.map(p => p.symbol);
   if (peers.length > 0) setCache(cacheKey, peers); // only cache non-empty results
   return peers;
 }
