@@ -20,6 +20,7 @@ import CapExEfficiency from './components/metrics/CapExEfficiency';
 import MoatScore from './components/metrics/MoatScore';
 import ManagementScore from './components/metrics/ManagementScore';
 import Valuation from './components/metrics/Valuation';
+import PeerComparison from './components/PeerComparison';
 import { useStockData } from './hooks/useStockData';
 import logo from './the-moat-logo2.png';
 import './styles.css';
@@ -166,6 +167,8 @@ function Dashboard() {
               <h2 className="section-title">Compounder Assessment</h2>
               <OverallScore scores={data.scores} />
             </section>
+
+            <PeerComparison data={data} onSelect={handleSelect} />
 
             <section className="metrics-section">
               <h2 className="section-title">Quality Metrics</h2>

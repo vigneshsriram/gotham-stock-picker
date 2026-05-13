@@ -145,6 +145,62 @@ export async function fetchQuote(symbol: string): Promise<number> {
   return price;
 }
 
+export interface FMPPeerSummary {
+  symbol: string;
+  name: string;
+  marketCap: number;
+  pe: number | null;
+  price: number;
+  revenue: number;
+  grossMargin: number;
+  operatingMargin: number;
+  revenueGrowthYoY: number;
+}
+
+export async function fetchPeers(symbol: string): Promise<string[]> {
+  const cacheKey = `fmp_peers_${symbol}`;
+  const cached = getCached<string[]>(cacheKey);
+  if (cached) return cached;
+  await delay(1300);
+  try {
+    const data = await fmpFetch<{ symbol: string; peersList: string[] }[]>(`/stock-peers?symbol=${symbol}`);
+    const peers = data[0]?.peersList ?? [];
+    setCache(cacheKey, peers);
+    return peers;
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchPeerSummary(symbol: string): Promise<FMPPeerSummary> {
+  const cacheKey = `fmp_peer_summary_${symbol}`;
+  const cached = getCached<FMPPeerSummary>(cacheKey);
+  if (cached) return cached;
+
+  const profile = await fetchProfile(symbol);
+  const income = await fetchIncomeStatements(symbol);
+
+  const latest = income[0];
+  const prev = income[1];
+  const grossMargin = latest?.revenue ? latest.grossProfit / latest.revenue : NaN;
+  const operatingMargin = latest?.revenue ? latest.operatingIncome / latest.revenue : NaN;
+  const revenueGrowthYoY = latest && prev?.revenue ? (latest.revenue - prev.revenue) / prev.revenue : NaN;
+
+  const summary: FMPPeerSummary = {
+    symbol: profile.symbol,
+    name: profile.companyName,
+    marketCap: profile.mktCap,
+    pe: profile.pe,
+    price: profile.price,
+    revenue: latest?.revenue ?? NaN,
+    grossMargin,
+    operatingMargin,
+    revenueGrowthYoY,
+  };
+  setCache(cacheKey, summary);
+  return summary;
+}
+
 export async function fetchQuotes(symbols: string[]): Promise<Record<string, number>> {
   if (symbols.length === 0) return {};
   const result: Record<string, number> = {};
