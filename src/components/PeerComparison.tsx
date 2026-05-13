@@ -31,11 +31,17 @@ interface ScatterPoint {
 
 // Custom dot — circle + ticker label underneath
 function ScatterDot(props: ScatterShapeProps & { payload?: ScatterPoint }) {
-  const cx = (props.cx as number) ?? 0;
-  const cy = (props.cy as number) ?? 0;
+  const cxRaw = props.cx as number;
+  const cyRaw = props.cy as number;
+  // If Recharts passes NaN (data point outside domain), skip rendering
+  if (!Number.isFinite(cxRaw) || !Number.isFinite(cyRaw)) return <g />;
+  const cx = cxRaw;
+  const cy = cyRaw;
   const payload = props.payload as ScatterPoint;
-  // Scale radius from market cap: 8px (small cap) → 28px (mega cap)
-  const r = payload ? Math.max(8, Math.min(28, 8 + Math.sqrt(payload.z) * 1.2)) : 12;
+  if (!payload) return <g />;
+  // Scale radius from market cap in billions; fallback to 12 if z is bad
+  const safeZ = Number.isFinite(payload.z) && payload.z > 0 ? payload.z : 100;
+  const r = Math.max(8, Math.min(28, 8 + Math.sqrt(safeZ) * 1.2));
   const color = payload.color;
   return (
     <g>
@@ -151,7 +157,7 @@ export default function PeerComparison({ data, onSelect }: Props) {
     name: data.name,
     x: activeOpMargin,
     y: activeYoY,
-    z: data.marketCap / 1e9,
+    z: Number.isFinite(data.marketCap) && data.marketCap > 0 ? data.marketCap / 1e9 : 100,
     pe: data.peRatio,
     revenue: latestYear?.revenue ?? NaN,
     grossMargin: latestYear?.grossMargin ?? NaN,
@@ -160,7 +166,7 @@ export default function PeerComparison({ data, onSelect }: Props) {
   };
 
   const peerPoints: ScatterPoint[] = peers
-    .filter(p => Number.isFinite(p.operatingMargin) && Number.isFinite(p.revenueGrowthYoY))
+    .filter(p => Number.isFinite(p.operatingMargin) && Number.isFinite(p.revenueGrowthYoY) && Number.isFinite(p.marketCap))
     .map((p, i) => ({
       symbol: p.symbol,
       name: p.name,
