@@ -150,6 +150,31 @@ export async function fetchQuote(symbol: string): Promise<number> {
   return price;
 }
 
+export interface FMPPeerBasic {
+  symbol: string;
+  name: string;
+  marketCap: number;
+  price: number;
+}
+
+// One API call — returns market cap + price for all peers directly from /stock-peers
+export async function fetchPeerBasics(symbol: string): Promise<FMPPeerBasic[]> {
+  const cacheKey = `fmp_peer_basics_${symbol}`;
+  const cached = getCached<FMPPeerBasic[]>(cacheKey);
+  if (cached && cached.length > 0) return cached;
+  await delay(1300);
+  const data = await fmpFetch<{ symbol: string; companyName: string; price: number; mktCap: number }[]>(
+    `/stock-peers?symbol=${symbol}`
+  );
+  const peers: FMPPeerBasic[] = data
+    .filter(p => p.symbol && Number.isFinite(p.mktCap) && p.mktCap > 0)
+    .slice(0, 8)
+    .map(p => ({ symbol: p.symbol, name: p.companyName ?? p.symbol, marketCap: p.mktCap, price: p.price }));
+  if (peers.length > 0) setCache(cacheKey, peers);
+  return peers;
+}
+
+// Keep old interfaces for backwards-compat if anything else imports them
 export interface FMPPeerSummary {
   symbol: string;
   name: string;
@@ -163,44 +188,8 @@ export interface FMPPeerSummary {
 }
 
 export async function fetchPeers(symbol: string): Promise<string[]> {
-  const cacheKey = `fmp_peers_${symbol}`;
-  const cached = getCached<string[]>(cacheKey);
-  if (cached && cached.length > 0) return cached; // never return a cached empty array
-  await delay(1300);
-  // FMP returns: [{ symbol: "DIS", companyName: "...", price: ..., mktCap: ... }, ...]
-  const data = await fmpFetch<{ symbol: string }[]>(`/stock-peers?symbol=${symbol}`);
-  const peers = data.map(p => p.symbol);
-  if (peers.length > 0) setCache(cacheKey, peers); // only cache non-empty results
-  return peers;
-}
-
-export async function fetchPeerSummary(symbol: string): Promise<FMPPeerSummary> {
-  const cacheKey = `fmp_peer_summary_${symbol}`;
-  const cached = getCached<FMPPeerSummary>(cacheKey);
-  if (cached) return cached;
-
-  const profile = await fetchProfile(symbol);
-  const income = await fetchIncomeStatements(symbol);
-
-  const latest = income[0];
-  const prev = income[1];
-  const grossMargin = latest?.revenue ? latest.grossProfit / latest.revenue : NaN;
-  const operatingMargin = latest?.revenue ? latest.operatingIncome / latest.revenue : NaN;
-  const revenueGrowthYoY = latest && prev?.revenue ? (latest.revenue - prev.revenue) / prev.revenue : NaN;
-
-  const summary: FMPPeerSummary = {
-    symbol: profile.symbol,
-    name: profile.companyName,
-    marketCap: profile.mktCap,
-    pe: profile.pe,
-    price: profile.price,
-    revenue: latest?.revenue ?? NaN,
-    grossMargin,
-    operatingMargin,
-    revenueGrowthYoY,
-  };
-  setCache(cacheKey, summary);
-  return summary;
+  const basics = await fetchPeerBasics(symbol);
+  return basics.map(p => p.symbol);
 }
 
 export async function fetchQuotes(symbols: string[]): Promise<Record<string, number>> {
