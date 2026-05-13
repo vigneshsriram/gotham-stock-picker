@@ -48,6 +48,7 @@ export interface FMPProfile {
   industry: string;
   description: string;
   mktCap: number;
+  marketCap?: number; // FMP stable API sometimes returns this field name instead
   beta: number;
   price: number;
   pe: number | null;
