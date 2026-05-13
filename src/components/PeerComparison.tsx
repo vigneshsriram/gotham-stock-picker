@@ -34,7 +34,8 @@ function ScatterDot(props: ScatterShapeProps & { payload?: ScatterPoint }) {
   const cx = (props.cx as number) ?? 0;
   const cy = (props.cy as number) ?? 0;
   const payload = props.payload as ScatterPoint;
-  const r = Math.max(8, Math.min(28, (props.r as number) || 12));
+  // Scale radius from market cap: 8px (small cap) → 28px (mega cap)
+  const r = payload ? Math.max(8, Math.min(28, 8 + Math.sqrt(payload.z) * 1.2)) : 12;
   const color = payload.color;
   return (
     <g>
