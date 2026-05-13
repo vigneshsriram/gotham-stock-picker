@@ -17,7 +17,7 @@ interface BubbleItem {
   isActive: boolean;
 }
 
-// Logarithmic radius: compresses the gap between small and mega caps
+// Logarithmic radius — safe against NaN, maxR < minR, zero/negative caps
 function logRadius(capBn: number, maxR: number, minR: number, minCap: number, maxCap: number): number {
   const safeMin = Math.max(minR, 12);
   const safeMax = Math.max(maxR, safeMin + 1); // guarantee maxR > minR
@@ -52,9 +52,7 @@ function MarketCapBubbles({ items }: { items: BubbleItem[] }) {
     return () => ro.disconnect();
   }, []);
 
-  if (items.length === 0) return null;
-
-  // Filter out items with invalid market caps before rendering
+  // Filter out items with missing/zero market caps before any math
   const validItems = items.filter(i => Number.isFinite(i.marketCap) && i.marketCap > 0);
   if (validItems.length === 0) return null;
 
@@ -67,7 +65,6 @@ function MarketCapBubbles({ items }: { items: BubbleItem[] }) {
   const H = (MAX_R + 32) * 2 + 40;
   const cy = H / 2 - 10;
 
-  // Space items evenly across width
   const padding = MAX_R + 14;
   const step = (width - padding * 2) / Math.max(validItems.length - 1, 1);
 
@@ -83,11 +80,9 @@ function MarketCapBubbles({ items }: { items: BubbleItem[] }) {
 
           return (
             <g key={item.symbol} style={{ cursor: item.isActive ? 'default' : 'pointer' }}>
-              {/* Glow ring for active */}
               {item.isActive && (
                 <circle cx={cx} cy={cy} r={r + 7} fill="none" stroke="#3b82f6" strokeWidth={1.5} strokeOpacity={0.3} />
               )}
-              {/* Main bubble */}
               <circle
                 cx={cx} cy={cy} r={r}
                 fill={color}
@@ -95,7 +90,6 @@ function MarketCapBubbles({ items }: { items: BubbleItem[] }) {
                 stroke={item.isActive ? '#93c5fd' : 'rgba(255,255,255,0.12)'}
                 strokeWidth={item.isActive ? 2 : 1}
               />
-              {/* Ticker inside bubble if large enough */}
               {r >= 26 ? (
                 <text x={cx} y={cy + 4} textAnchor="middle"
                   fill={item.isActive ? '#fff' : '#e2e8f0'}
@@ -110,7 +104,6 @@ function MarketCapBubbles({ items }: { items: BubbleItem[] }) {
                   {item.symbol}
                 </text>
               )}
-              {/* Market cap below bubble */}
               <text x={cx} y={r >= 26 ? labelY : capY} textAnchor="middle"
                 fill="#6b7280" fontSize={9} fontFamily="Inter, sans-serif">
                 {fmtBn(item.marketCap)}
@@ -150,7 +143,6 @@ export default function PeerComparison({ data, onSelect }: Props) {
     return () => { cancelled = true; };
   }, [data.symbol]);
 
-  // Build the combined list: active stock + peers, sorted by market cap desc
   const activeItem: BubbleItem = {
     symbol: data.symbol,
     name: data.name,
@@ -201,7 +193,6 @@ export default function PeerComparison({ data, onSelect }: Props) {
 
           {/* Peer cards */}
           <div className="peer-cards-grid">
-            {/* Active stock */}
             <div className="peer-card peer-card-active">
               <div className="peer-card-top">
                 <span className="peer-card-ticker" style={{ color: '#3b82f6' }}>{data.symbol}</span>
@@ -220,7 +211,6 @@ export default function PeerComparison({ data, onSelect }: Props) {
               </div>
             </div>
 
-            {/* Peers */}
             {peers.map(p => (
               <div
                 key={p.symbol}
@@ -245,7 +235,6 @@ export default function PeerComparison({ data, onSelect }: Props) {
               </div>
             ))}
 
-            {/* Skeleton while loading */}
             {loading && peers.length === 0 && Array.from({ length: 4 }).map((_, i) => (
               <div key={`skeleton-${i}`} className="peer-card peer-card-skeleton">
                 <div className="peer-skeleton-line peer-skeleton-ticker" />
