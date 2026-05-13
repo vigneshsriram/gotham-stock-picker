@@ -3,6 +3,7 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, ZAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
+import type { ScatterShapeProps } from 'recharts';
 import { fetchPeers, fetchPeerSummary } from '../api/fmp';
 import type { FMPPeerSummary } from '../api/fmp';
 import type { StockAnalysis } from '../types';
@@ -29,9 +30,9 @@ interface ScatterPoint {
 }
 
 // Custom dot — circle + ticker label underneath
-function ScatterDot(props: Record<string, unknown>) {
-  const cx = props.cx as number;
-  const cy = props.cy as number;
+function ScatterDot(props: ScatterShapeProps & { payload?: ScatterPoint }) {
+  const cx = (props.cx as number) ?? 0;
+  const cy = (props.cy as number) ?? 0;
   const payload = props.payload as ScatterPoint;
   const r = Math.max(8, Math.min(28, (props.r as number) || 12));
   const color = payload.color;
@@ -225,11 +226,11 @@ export default function PeerComparison({ data, onSelect }: Props) {
                   {/* Peers first so active renders on top */}
                   <Scatter
                     data={peerPoints}
-                    shape={(props: Record<string, unknown>) => <ScatterDot {...props} />}
+                    shape={(props: ScatterShapeProps) => <ScatterDot {...props} />}
                   />
                   <Scatter
                     data={[activePoint]}
-                    shape={(props: Record<string, unknown>) => <ScatterDot {...props} />}
+                    shape={(props: ScatterShapeProps) => <ScatterDot {...props} />}
                   />
                 </ScatterChart>
               </ResponsiveContainer>
