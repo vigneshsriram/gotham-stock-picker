@@ -19,13 +19,16 @@ interface BubbleItem {
 
 // Logarithmic radius: compresses the gap between small and mega caps
 function logRadius(capBn: number, maxR: number, minR: number, minCap: number, maxCap: number): number {
-  if (!Number.isFinite(capBn) || capBn <= 0) return minR;
-  const logMin = Math.log10(minCap + 1);
-  const logMax = Math.log10(maxCap + 1);
-  const logVal = Math.log10(capBn + 1);
-  if (logMax === logMin) return (minR + maxR) / 2;
-  const t = (logVal - logMin) / (logMax - logMin);
-  return minR + t * (maxR - minR);
+  const safeMin = Math.max(minR, 12);
+  const safeMax = Math.max(maxR, safeMin + 1); // guarantee maxR > minR
+  const safeCap = Number.isFinite(capBn) && capBn > 0 ? capBn : 1;
+  const safeMinCap = Number.isFinite(minCap) && minCap > 0 ? minCap : 1;
+  const safeMaxCap = Number.isFinite(maxCap) && maxCap > safeMinCap ? maxCap : safeMinCap + 1;
+  const logMin = Math.log10(safeMinCap + 1);
+  const logMax = Math.log10(safeMaxCap + 1);
+  const logVal = Math.log10(safeCap + 1);
+  const t = Math.max(0, Math.min(1, (logVal - logMin) / (logMax - logMin)));
+  return safeMin + t * (safeMax - safeMin);
 }
 
 function fmtPrice(p: number): string {
@@ -51,24 +54,28 @@ function MarketCapBubbles({ items }: { items: BubbleItem[] }) {
 
   if (items.length === 0) return null;
 
-  const caps = items.map(i => i.marketCap / 1e9);
+  // Filter out items with invalid market caps before rendering
+  const validItems = items.filter(i => Number.isFinite(i.marketCap) && i.marketCap > 0);
+  if (validItems.length === 0) return null;
+
+  const caps = validItems.map(i => i.marketCap / 1e9);
   const minCap = Math.min(...caps);
   const maxCap = Math.max(...caps);
 
-  const MIN_R = 22;
-  const MAX_R = Math.min(60, width / (items.length * 2.2));
-  const H = (MAX_R + 30) * 2 + 40; // height: two radii + label + padding
+  const MIN_R = 18;
+  const MAX_R = Math.max(MIN_R + 8, Math.min(60, width / (validItems.length * 2.4)));
+  const H = (MAX_R + 32) * 2 + 40;
   const cy = H / 2 - 10;
 
   // Space items evenly across width
-  const padding = MAX_R + 10;
-  const step = (width - padding * 2) / Math.max(items.length - 1, 1);
+  const padding = MAX_R + 14;
+  const step = (width - padding * 2) / Math.max(validItems.length - 1, 1);
 
   return (
     <div ref={containerRef} style={{ width: '100%' }}>
       <svg width={width} height={H} style={{ overflow: 'visible' }}>
-        {items.map((item, i) => {
-          const cx = items.length === 1 ? width / 2 : padding + i * step;
+        {validItems.map((item, i) => {
+          const cx = validItems.length === 1 ? width / 2 : padding + i * step;
           const r = logRadius(item.marketCap / 1e9, MAX_R, MIN_R, minCap, maxCap);
           const color = item.isActive ? '#3b82f6' : '#64748b';
           const labelY = cy + r + 18;
