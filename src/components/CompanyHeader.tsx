@@ -46,13 +46,13 @@ const CompanyHeader = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
       <div className="stats-row">
         <StatPill label="Price" value={price} />
         <StatPill label="P/E" value={pe} />
-
         <StatPill label="EPS" value={eps} />
         <StatPill label="Beta" value={beta} />
         <StatPill label="52W High" value={high52} />
         <StatPill label="52W Low" value={low52} />
         <StatPill label="Mkt Cap" value={mktCap} />
         <StatPill label="Div Yield" value={divYield} />
+        {earningsLabel && <StatPill label="Next Earnings" value={earningsLabel} />}
       </div>
 
       {data.description && (
@@ -61,11 +61,6 @@ const CompanyHeader = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
           <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
             {expanded ? 'Show less' : 'Show more'}
           </button>
-          {earningsLabel && (
-            <div className="next-earnings-badge">
-              📅 Next earnings: <strong>{earningsLabel}</strong>
-            </div>
-          )}
         </div>
       )}
     </div>
