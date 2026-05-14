@@ -34,6 +34,7 @@ function Dashboard() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showPaperTrading, setShowPaperTrading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const companyHeaderRef = useRef<HTMLDivElement>(null);
   const [hasKey, setHasKey] = useState<boolean | null>(null); // null = loading
   const { data, loading, error, status } = useStockData(activeTicker, retryKey);
@@ -69,7 +70,8 @@ function Dashboard() {
 
   function handleSelect(ticker: string) {
     setActiveTicker(ticker.toUpperCase());
-    setSidebarOpen(false); // collapse sidebar on mobile + auto-close on search
+    setSidebarOpen(false);
+    setSidebarCollapsed(true); // hide sidebar on desktop after search
     setShowPaperTrading(false);
   }
 
@@ -104,30 +106,39 @@ function Dashboard() {
   }
 
   return (
-    <div className={`layout${sidebarOpen ? ' sidebar-open' : ''}`}>
+    <div className={`layout${sidebarOpen ? ' sidebar-open' : ''}${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <Sidebar
-        activeTicker={activeTicker}
-        onSelect={handleSelect}
-        watchlist={watchlist}
-        onRemove={handleWatchlistRemove}
-        onKeySaved={isAdmin ? undefined : handleKeySaved}
-        onSignOut={signOut}
-        isAdmin={isAdmin}
-        onAdmin={() => setShowAdmin(true)}
-        onClose={() => setSidebarOpen(false)}
-        onPaperTrading={() => { setShowPaperTrading(true); setSidebarOpen(false); }}
-      />
+      {!sidebarCollapsed && (
+        <Sidebar
+          activeTicker={activeTicker}
+          onSelect={handleSelect}
+          watchlist={watchlist}
+          onRemove={handleWatchlistRemove}
+          onKeySaved={isAdmin ? undefined : handleKeySaved}
+          onSignOut={signOut}
+          isAdmin={isAdmin}
+          onAdmin={() => setShowAdmin(true)}
+          onClose={() => { setSidebarOpen(false); setSidebarCollapsed(true); }}
+          onPaperTrading={() => { setShowPaperTrading(true); setSidebarOpen(false); setSidebarCollapsed(true); }}
+        />
+      )}
 
       <div className="main-content">
         {showPaperTrading && (
           <PaperTrading onBack={() => setShowPaperTrading(false)} />
         )}
         {!showPaperTrading && <>
+        {/* Desktop sidebar reopen button (shown when sidebar is collapsed) */}
+        {sidebarCollapsed && (
+          <button className="sidebar-reopen-btn" onClick={() => setSidebarCollapsed(false)} aria-label="Open sidebar">
+            ☰
+          </button>
+        )}
+
         {/* Mobile header bar */}
         <div className="mobile-header">
           <button className="mobile-menu-btn" onClick={() => setSidebarOpen(v => !v)} aria-label="Menu">

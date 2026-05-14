@@ -32,18 +32,15 @@ export default function StickyHeader({ data, triggerRef }: Props) {
   return (
     <div className={`sticky-header${visible ? ' sticky-header-visible' : ''}`}>
       <div className="sticky-header-inner">
-        <div className="sticky-header-left">
-          <span className="sticky-header-name">{data.name}</span>
-          <span className="sticky-header-ticker">{data.symbol}</span>
-        </div>
-        <div className="sticky-header-right">
-          <span className="sticky-header-price">
-            ${Number.isFinite(data.currentPrice) ? data.currentPrice.toFixed(2) : '—'}
-          </span>
-          <span className="sticky-header-change" style={{ color: changeColor }}>
-            {fmtChange(data.priceChange)} {fmtPct(data.priceChangePct)}
-          </span>
-        </div>
+        <span className="sticky-header-name">{data.name}</span>
+        <span className="sticky-header-ticker">{data.symbol}</span>
+        <span className="sticky-header-divider">·</span>
+        <span className="sticky-header-price">
+          ${Number.isFinite(data.currentPrice) ? data.currentPrice.toFixed(2) : '—'}
+        </span>
+        <span className="sticky-header-change" style={{ color: changeColor }}>
+          {fmtChange(data.priceChange)} {fmtPct(data.priceChangePct)}
+        </span>
       </div>
     </div>
   );
