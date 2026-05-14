@@ -423,6 +423,7 @@ body {
 .sidebar-reopen-btn:hover { color: var(--text); border-color: var(--blue); }
 @media (min-width: 769px) { .sidebar-reopen-btn { display: flex; } }
 
+
 .expand-btn {
   background: none;
   border: none;

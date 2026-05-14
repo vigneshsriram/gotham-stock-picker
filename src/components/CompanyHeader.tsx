@@ -61,6 +61,11 @@ const CompanyHeader = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
           <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
             {expanded ? 'Show less' : 'Show more'}
           </button>
+          {earningsLabel && (
+            <div className="next-earnings-badge">
+              📅 Next earnings: <strong>{earningsLabel}</strong>
+            </div>
+          )}
         </div>
       )}
     </div>
