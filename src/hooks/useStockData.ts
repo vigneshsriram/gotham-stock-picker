@@ -26,14 +26,20 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
         setStatus('Checking cache…');
         const cached = await loadStockCacheDB(symbol);
         if (cached && !cancelled) {
-          // Still need a fresh quote (price changes every second)
+          // Fetch live price — it changes constantly
           setStatus('Fetching current price…');
           const livePrice = await fetchQuote(symbol);
           if (!cancelled) {
-            const withLivePrice = Number.isFinite(livePrice)
-              ? { ...cached, currentPrice: livePrice }
-              : cached;
-            setData(withLivePrice);
+            const price = Number.isFinite(livePrice) ? livePrice : cached.currentPrice;
+            // Always recompute P/E and PEG from live price + stored EPS.
+            // The cached peRatio may be null/stale (saved before the P/E fix).
+            const peRatio = Number.isFinite(cached.eps) && cached.eps > 0
+              ? price / cached.eps : NaN;
+            const epsGrowthRate = Number.isFinite(cached.epsCAGR) && cached.epsCAGR > 0
+              ? cached.epsCAGR * 100 : NaN;
+            const pegRatio = Number.isFinite(peRatio) && Number.isFinite(epsGrowthRate) && epsGrowthRate > 0
+              ? peRatio / epsGrowthRate : NaN;
+            setData({ ...cached, currentPrice: price, peRatio, pegRatio });
           }
           return;
         }
