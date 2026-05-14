@@ -40,7 +40,7 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
               ? peRatio / epsGrowthRate : NaN;
             const dividendYield = Number.isFinite(cached.lastDividend) && cached.lastDividend > 0
               ? cached.lastDividend / price : NaN;
-            setData({ revenueSegments: [], ...cached, currentPrice: price, priceChange: quote.change, priceChangePct: quote.changePercentage, peRatio, pegRatio, dividendYield });
+            setData({ ...cached, revenueSegments: cached.revenueSegments ?? [], currentPrice: price, priceChange: quote.change, priceChangePct: quote.changePercentage, peRatio, pegRatio, dividendYield });
           }
           return;
         }

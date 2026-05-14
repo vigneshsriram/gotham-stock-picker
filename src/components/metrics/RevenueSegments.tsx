@@ -1,9 +1,8 @@
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend, Cell,
+  ResponsiveContainer, Legend,
 } from 'recharts';
 import type { StockAnalysis } from '../../types';
-import MetricCard from '../MetricCard';
 import { fmtBn, TOOLTIP_STYLE, TICK_STYLE } from '../../utils/calculations';
 
 interface Props { data: StockAnalysis }
@@ -36,15 +35,7 @@ function normaliseKey(key: string): string {
 export default function RevenueSegments({ data }: Props) {
   const { revenueSegments } = data;
 
-  if (!revenueSegments || revenueSegments.length === 0) {
-    return (
-      <MetricCard title="Revenue by Segment" score={null} info="Segment breakdown not available for this company.">
-        <p style={{ color: 'var(--muted)', fontSize: 13, textAlign: 'center', padding: '32px 0' }}>
-          No segment data available
-        </p>
-      </MetricCard>
-    );
-  }
+  if (!revenueSegments || revenueSegments.length === 0) return null;
 
   // Collect all unique normalised segment names across all years
   const allSegments = Array.from(
@@ -95,11 +86,18 @@ export default function RevenueSegments({ data }: Props) {
   const activeSegments = sortedSegments.filter(s => recentSegments.has(s));
 
   return (
-    <MetricCard
-      title="Revenue by Segment"
-      score={null}
-      info={topPct ? `${topSegment[0]} makes up ${topPct}% of revenue in ${latest.year}` : undefined}
-    >
+    <div className="metric-card">
+      <div className="metric-card-header">
+        <div className="metric-card-title-group">
+          <span className="metric-title">Revenue by Segment</span>
+        </div>
+        {topPct && (
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+            {topSegment[0]} {topPct}% of {latest.year} revenue
+          </span>
+        )}
+      </div>
+      <div className="metric-card-body">
       <div style={{ marginBottom: 12, fontSize: 12, color: 'var(--muted)' }}>
         Stacked by product/business line · $B
       </div>
@@ -116,7 +114,7 @@ export default function RevenueSegments({ data }: Props) {
           />
           <Tooltip
             contentStyle={TOOLTIP_STYLE}
-            formatter={(val: number, name: string) => [`$${fmtBn(val * 1e9)}`, name]}
+            formatter={(val, name) => [`$${fmtBn((val as number) * 1e9)}`, name as string]}
           />
           <Legend
             wrapperStyle={{ fontSize: 11, color: 'var(--muted)', paddingTop: 8 }}
@@ -146,6 +144,7 @@ export default function RevenueSegments({ data }: Props) {
             </div>
           ))}
       </div>
-    </MetricCard>
+      </div>
+    </div>
   );
 }
