@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './lib/auth';
 import { loadWatchlistDB, addToWatchlistDB, removeFromWatchlistDB, loadApiKeyDB, saveApiKeyDB } from './lib/db';
 import { loadPoolKey } from './lib/keyPool';
@@ -21,6 +21,7 @@ import MoatScore from './components/metrics/MoatScore';
 import ManagementScore from './components/metrics/ManagementScore';
 import Valuation from './components/metrics/Valuation';
 import PeerComparison from './components/PeerComparison';
+import StickyHeader from './components/StickyHeader';
 import { useStockData } from './hooks/useStockData';
 import logo from './the-moat-logo2.png';
 import './styles.css';
@@ -33,6 +34,7 @@ function Dashboard() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showPaperTrading, setShowPaperTrading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const companyHeaderRef = useRef<HTMLDivElement>(null);
   const [hasKey, setHasKey] = useState<boolean | null>(null); // null = loading
   const { data, loading, error, status } = useStockData(activeTicker, retryKey);
 
@@ -67,8 +69,8 @@ function Dashboard() {
 
   function handleSelect(ticker: string) {
     setActiveTicker(ticker.toUpperCase());
-    setSidebarOpen(false);
-    setShowPaperTrading(false); // return to dashboard when selecting a stock
+    setSidebarOpen(false); // collapse sidebar on mobile + auto-close on search
+    setShowPaperTrading(false);
   }
 
   async function handleRetry() {
@@ -161,7 +163,8 @@ function Dashboard() {
 
         {data && !loading && (
           <>
-            <CompanyHeader data={data} />
+            <StickyHeader data={data} triggerRef={companyHeaderRef} />
+            <CompanyHeader data={data} ref={companyHeaderRef} />
 
             <section className="overall-section">
               <h2 className="section-title">Compounder Assessment</h2>
