@@ -22,6 +22,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
   const [showApiKey, setShowApiKey] = useState(false);
   const [saved, setSaved] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(true);
+  const [searchCollapsed, setSearchCollapsed] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +30,7 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
     if (!ticker) return;
     onSelect(ticker);
     setDraft('');
+    setSearchCollapsed(true); // collapse search bar after submitting
   }
 
   function removeTicker(ticker: string, e: React.MouseEvent) {
@@ -57,17 +59,24 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">×</button>
       </div>
 
-      <form onSubmit={handleSubmit} className="sidebar-search">
-        <input
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          placeholder="Enter ticker…"
-          spellCheck={false}
-          autoCapitalize="characters"
-          className="sidebar-input"
-        />
-        <button type="submit" className="sidebar-search-btn">→</button>
-      </form>
+      {searchCollapsed ? (
+        <button className="sidebar-search-collapsed" onClick={() => setSearchCollapsed(false)}>
+          🔍 Search ticker
+        </button>
+      ) : (
+        <form onSubmit={handleSubmit} className="sidebar-search">
+          <input
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            placeholder="Enter ticker…"
+            spellCheck={false}
+            autoCapitalize="characters"
+            className="sidebar-input"
+            autoFocus
+          />
+          <button type="submit" className="sidebar-search-btn">→</button>
+        </form>
+      )}
 
       <button className="sidebar-section-toggle" onClick={() => setWatchlistOpen(v => !v)}>
         <span>WATCHLIST</span>

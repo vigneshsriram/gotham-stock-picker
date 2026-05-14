@@ -137,15 +137,25 @@ export async function fetchCashFlows(symbol: string): Promise<FMPCashFlow[]> {
   return data;
 }
 
-export async function fetchQuote(symbol: string): Promise<number> {
+export interface FMPQuote {
+  price: number;
+  change: number;         // $ change today
+  changePercentage: number; // % change today
+}
+
+export async function fetchQuote(symbol: string): Promise<FMPQuote> {
   const cacheKey = `fmp_quote_${symbol}`;
-  const cached = getCached<number>(cacheKey, QUOTE_TTL);
+  const cached = getCached<FMPQuote>(cacheKey, QUOTE_TTL);
   if (cached !== null) return cached;
   await delay(1300);
-  const data = await fmpFetch<{ price: number }[]>(`/quote?symbol=${symbol}`);
-  const price = data[0]?.price ?? NaN;
-  if (Number.isFinite(price)) setCache(cacheKey, price);
-  return price;
+  const data = await fmpFetch<FMPQuote[]>(`/quote?symbol=${symbol}`);
+  const q: FMPQuote = {
+    price: data[0]?.price ?? NaN,
+    change: data[0]?.change ?? NaN,
+    changePercentage: data[0]?.changePercentage ?? NaN,
+  };
+  if (Number.isFinite(q.price)) setCache(cacheKey, q);
+  return q;
 }
 
 export interface FMPPeerBasic {
