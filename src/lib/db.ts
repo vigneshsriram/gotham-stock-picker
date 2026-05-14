@@ -87,6 +87,32 @@ export async function saveStockCacheDB(
   }, { onConflict: 'symbol' });
 }
 
+/** Deletes all rows from stock_cache (admin use only). */
+export async function clearStockCacheDB(): Promise<string | null> {
+  const { error } = await supabase.from('stock_cache').delete().neq('symbol', '');
+  return error?.message ?? null;
+}
+
+/** Deletes a single ticker from stock_cache. */
+export async function deleteStockCacheEntryDB(symbol: string): Promise<string | null> {
+  const { error } = await supabase.from('stock_cache').delete().eq('symbol', symbol.toUpperCase());
+  return error?.message ?? null;
+}
+
+/** Returns all rows in stock_cache for the admin view. */
+export interface StockCacheMeta {
+  symbol: string;
+  fetched_at: string;
+  next_earnings: string | null;
+}
+export async function listStockCacheDB(): Promise<StockCacheMeta[]> {
+  const { data } = await supabase
+    .from('stock_cache')
+    .select('symbol, fetched_at, next_earnings')
+    .order('fetched_at', { ascending: false });
+  return (data ?? []) as StockCacheMeta[];
+}
+
 // --- Admin: list profiles ---
 
 export interface UserProfile {
