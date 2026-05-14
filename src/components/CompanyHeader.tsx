@@ -20,7 +20,6 @@ export default function CompanyHeader({ data }: Props) {
 
   const price = Number.isFinite(data.currentPrice) ? `$${data.currentPrice.toFixed(2)}` : 'N/A';
   const pe = Number.isFinite(data.peRatio) && data.peRatio > 0 ? fmtNum(data.peRatio) : 'N/A';
-  const fpe = Number.isFinite(data.forwardPE) && data.forwardPE > 0 ? fmtNum(data.forwardPE) : 'N/A';
   const eps = Number.isFinite(data.eps) ? `$${fmtNum(data.eps, 2)}` : 'N/A';
   const beta = Number.isFinite(data.beta) ? fmtNum(data.beta, 2) : 'N/A';
   const high52 = Number.isFinite(data.weekHigh52) ? `$${fmtNum(data.weekHigh52, 2)}` : 'N/A';
@@ -45,7 +44,7 @@ export default function CompanyHeader({ data }: Props) {
       <div className="stats-row">
         <StatPill label="Price" value={price} />
         <StatPill label="P/E" value={pe} />
-        <StatPill label="Fwd P/E" value={fpe} />
+
         <StatPill label="EPS" value={eps} />
         <StatPill label="Beta" value={beta} />
         <StatPill label="52W High" value={high52} />
