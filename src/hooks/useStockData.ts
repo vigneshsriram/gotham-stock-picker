@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { StockAnalysis, AnnualData, DCFInputs } from '../types';
-import { fetchProfile, fetchIncomeStatements, fetchBalanceSheets, fetchCashFlows, fetchQuote } from '../api/fmp';
+import { fetchProfile, fetchIncomeStatements, fetchBalanceSheets, fetchCashFlows, fetchQuote, fetchNextEarnings } from '../api/fmp';
 import { safeNum } from '../api/apiClient';
 import { cagr, mean, calcROIC, calcDCF, calcAllScores } from '../utils/calculations';
+import { loadStockCacheDB, saveStockCacheDB } from '../lib/db';
 
 export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysis | null; loading: boolean; error: string | null; status: string } {
   const [data, setData] = useState<StockAnalysis | null>(null);
@@ -21,6 +22,23 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
       setStatus('');
 
       try {
+        // ── Check shared DB cache first ──────────────────────────
+        setStatus('Checking cache…');
+        const cached = await loadStockCacheDB(symbol);
+        if (cached && !cancelled) {
+          // Still need a fresh quote (price changes every second)
+          setStatus('Fetching current price…');
+          const livePrice = await fetchQuote(symbol);
+          if (!cancelled) {
+            const withLivePrice = Number.isFinite(livePrice)
+              ? { ...cached, currentPrice: livePrice }
+              : cached;
+            setData(withLivePrice);
+          }
+          return;
+        }
+
+        // ── Cache miss — fetch fresh from FMP ───────────────────
         setStatus('Fetching company profile…');
         const profile = await fetchProfile(symbol);
         setStatus('Fetching income statement…');
@@ -202,6 +220,14 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
         };
 
         setData(result);
+
+        // ── Save to shared DB cache (fire-and-forget) ────────────
+        // Fetch next earnings date to know when this data expires.
+        // Non-blocking: runs after UI has already updated.
+        fetchNextEarnings(symbol).then(nextEarnings => {
+          saveStockCacheDB(symbol, result, nextEarnings);
+        });
+
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {

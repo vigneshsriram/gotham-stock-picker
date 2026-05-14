@@ -193,6 +193,25 @@ export async function fetchPeers(symbol: string): Promise<string[]> {
   return basics.map(p => p.symbol);
 }
 
+export async function fetchNextEarnings(symbol: string): Promise<string | null> {
+  try {
+    const cacheKey = `fmp_earnings_${symbol}`;
+    const cached = getCached<string | null>(cacheKey);
+    if (cached !== undefined) return cached;
+    await delay(1300);
+    const today = new Date().toISOString().slice(0, 10);
+    const future = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const data = await fmpFetch<{ date: string; symbol: string }[]>(
+      `/earnings-calendar?symbol=${symbol}&from=${today}&to=${future}`
+    );
+    const next = data?.[0]?.date ?? null;
+    setCache(cacheKey, next);
+    return next;
+  } catch {
+    return null; // non-critical — fall back to 90-day TTL
+  }
+}
+
 export async function fetchQuotes(symbols: string[]): Promise<Record<string, number>> {
   if (symbols.length === 0) return {};
   const result: Record<string, number> = {};

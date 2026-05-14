@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { StockAnalysis } from '../types';
 
 // --- Watchlist ---
 
@@ -32,6 +33,58 @@ export async function loadApiKeyDB(userId: string): Promise<string | null> {
 
 export async function saveApiKeyDB(userId: string, key: string): Promise<void> {
   await supabase.from('user_settings').upsert({ user_id: userId, av_key: key });
+}
+
+// --- Stock Cache ---
+
+const FALLBACK_TTL_DAYS = 90; // if no earnings date, refresh after one quarter
+
+export interface StockCacheRow {
+  symbol: string;
+  data: StockAnalysis;
+  fetched_at: string;       // ISO timestamp
+  next_earnings: string | null; // ISO date string e.g. "2025-07-24"
+}
+
+/** Returns cached data if it's still fresh, null if missing or stale. */
+export async function loadStockCacheDB(symbol: string): Promise<StockAnalysis | null> {
+  const { data: row, error } = await supabase
+    .from('stock_cache')
+    .select('data, fetched_at, next_earnings')
+    .eq('symbol', symbol.toUpperCase())
+    .maybeSingle();
+
+  if (error || !row) return null;
+
+  const now = new Date();
+
+  // If we know the next earnings date, data is fresh until that date passes
+  if (row.next_earnings) {
+    const earningsDate = new Date(row.next_earnings);
+    if (now < earningsDate) return row.data as StockAnalysis;
+    return null; // earnings have passed — financials may be updated
+  }
+
+  // No earnings date: fall back to 90-day TTL
+  const fetchedAt = new Date(row.fetched_at);
+  const ageDays = (now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24);
+  if (ageDays < FALLBACK_TTL_DAYS) return row.data as StockAnalysis;
+
+  return null;
+}
+
+/** Saves (upserts) stock data to the shared cache. */
+export async function saveStockCacheDB(
+  symbol: string,
+  data: StockAnalysis,
+  nextEarnings: string | null
+): Promise<void> {
+  await supabase.from('stock_cache').upsert({
+    symbol: symbol.toUpperCase(),
+    data,
+    fetched_at: new Date().toISOString(),
+    next_earnings: nextEarnings ?? null,
+  }, { onConflict: 'symbol' });
 }
 
 // --- Admin: list profiles ---
