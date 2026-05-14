@@ -89,14 +89,24 @@ export async function saveStockCacheDB(
 
 /** Deletes all rows from stock_cache (admin use only). */
 export async function clearStockCacheDB(): Promise<string | null> {
-  const { error } = await supabase.from('stock_cache').delete().neq('symbol', '');
-  return error?.message ?? null;
+  const { error, count } = await supabase
+    .from('stock_cache')
+    .delete({ count: 'exact' })
+    .neq('symbol', '');
+  if (error) return error.message;
+  if (count === 0) return 'Delete was blocked — make sure the stock_cache DELETE policy exists in Supabase.';
+  return null;
 }
 
 /** Deletes a single ticker from stock_cache. */
 export async function deleteStockCacheEntryDB(symbol: string): Promise<string | null> {
-  const { error } = await supabase.from('stock_cache').delete().eq('symbol', symbol.toUpperCase());
-  return error?.message ?? null;
+  const { error, count } = await supabase
+    .from('stock_cache')
+    .delete({ count: 'exact' })
+    .eq('symbol', symbol.toUpperCase());
+  if (error) return error.message;
+  if (count === 0) return 'Row not deleted — make sure the stock_cache DELETE policy exists in Supabase.';
+  return null;
 }
 
 /** Returns all rows in stock_cache for the admin view. */
