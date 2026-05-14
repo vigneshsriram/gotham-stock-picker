@@ -1070,6 +1070,17 @@ body {
 .admin-remove-btn:hover { background: rgba(239,68,68,0.2); }
 .admin-remove-btn:disabled { opacity: 0.5; cursor: default; }
 
+.admin-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.admin-tab { background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 500; padding: 8px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
+.admin-tab:hover { color: var(--text); }
+.admin-tab-active { color: var(--accent) !important; border-bottom-color: var(--accent); }
+.admin-cache-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.admin-cache-hint { font-size: 12px; color: var(--muted); }
+.admin-clear-cache-btn { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; font-size: 12px; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+.admin-clear-cache-btn:hover:not(:disabled) { background: rgba(239,68,68,0.2); }
+.admin-clear-cache-btn:disabled { opacity: 0.5; cursor: default; }
+.admin-cache-msg { font-size: 12px; color: #34d399; margin-bottom: 10px; }
+
 /* ── Onboarding ── */
 .onboarding-container {
   display: flex;
