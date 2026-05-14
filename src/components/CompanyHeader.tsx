@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState } from 'react';
 import type { StockAnalysis } from '../types';
 import { fmtBn, fmtNum } from '../utils/calculations';
 
@@ -15,7 +15,7 @@ function StatPill({ label, value }: { label: string; value: string }) {
   );
 }
 
-const CompanyHeader = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
+export default function CompanyHeader({ data }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const price = Number.isFinite(data.currentPrice) ? `$${data.currentPrice.toFixed(2)}` : 'N/A';
@@ -28,12 +28,8 @@ const CompanyHeader = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   const divYield = Number.isFinite(data.dividendYield) && data.dividendYield > 0
     ? `${(data.dividendYield * 100).toFixed(2)}%` : 'N/A';
 
-  const earningsLabel = data.nextEarnings
-    ? new Date(data.nextEarnings).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : null;
-
   return (
-    <div className="company-header" ref={ref}>
+    <div className="company-header">
       <div className="company-header-top">
         <div className="company-title-group">
           <h1 className="company-name">{data.name}</h1>
@@ -48,6 +44,7 @@ const CompanyHeader = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
       <div className="stats-row">
         <StatPill label="Price" value={price} />
         <StatPill label="P/E" value={pe} />
+
         <StatPill label="EPS" value={eps} />
         <StatPill label="Beta" value={beta} />
         <StatPill label="52W High" value={high52} />
@@ -62,16 +59,8 @@ const CompanyHeader = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
           <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
             {expanded ? 'Show less' : 'Show more'}
           </button>
-          {earningsLabel && (
-            <div className="next-earnings-badge">
-              📅 Next earnings: <strong>{earningsLabel}</strong>
-            </div>
-          )}
         </div>
       )}
     </div>
   );
-});
-
-CompanyHeader.displayName = 'CompanyHeader';
-export default CompanyHeader;
+}

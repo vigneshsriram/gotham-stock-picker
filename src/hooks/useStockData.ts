@@ -26,26 +26,21 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
         setStatus('Checking cache…');
         const cached = await loadStockCacheDB(symbol);
         if (cached && !cancelled) {
-          // Fetch live price + today's change — these change constantly
+          // Fetch live price — it changes constantly
           setStatus('Fetching current price…');
-          const quote = await fetchQuote(symbol);
+          const livePrice = await fetchQuote(symbol);
           if (!cancelled) {
-            const price = Number.isFinite(quote.price) ? quote.price : cached.currentPrice;
+            const price = Number.isFinite(livePrice) ? livePrice : cached.currentPrice;
             // Recompute price-dependent fields from live price — cached values may be stale/null
-            const peRatio = Number.isFinite(cached.eps) && cached.eps > 0 ? price / cached.eps : NaN;
-            const epsGrowthRate = Number.isFinite(cached.epsCAGR) && cached.epsCAGR > 0 ? cached.epsCAGR * 100 : NaN;
+            const peRatio = Number.isFinite(cached.eps) && cached.eps > 0
+              ? price / cached.eps : NaN;
+            const epsGrowthRate = Number.isFinite(cached.epsCAGR) && cached.epsCAGR > 0
+              ? cached.epsCAGR * 100 : NaN;
             const pegRatio = Number.isFinite(peRatio) && Number.isFinite(epsGrowthRate) && epsGrowthRate > 0
               ? peRatio / epsGrowthRate : NaN;
             const dividendYield = Number.isFinite(cached.lastDividend) && cached.lastDividend > 0
               ? cached.lastDividend / price : NaN;
-            setData({
-              ...cached,
-              currentPrice: price,
-              priceChange: quote.change,
-              priceChangePct: quote.changePercentage,
-              peRatio, pegRatio, dividendYield,
-              // nextEarnings already stored in cached object
-            });
+            setData({ ...cached, currentPrice: price, peRatio, pegRatio, dividendYield });
           }
           return;
         }
@@ -60,8 +55,7 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
         setStatus('Fetching cash flow…');
         const cashFlows = await fetchCashFlows(symbol);
         setStatus('Fetching current price…');
-        const quote = await fetchQuote(symbol);
-        const currentPrice = quote.price;
+        const currentPrice = await fetchQuote(symbol);
 
         if (cancelled) return;
 
@@ -228,9 +222,6 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
           forwardPE,
           dividendYield,
           lastDividend,
-          priceChange: quote.change,
-          priceChangePct: quote.changePercentage,
-          nextEarnings: null, // filled in below after UI renders
           annualData,
           revenueCAGR,
           epsCAGR,
@@ -245,10 +236,11 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
 
         setData(result);
 
-        // ── Fetch next earnings + save to DB (fire-and-forget) ───
+        // ── Save to shared DB cache (fire-and-forget) ────────────
+        // Fetch next earnings date to know when this data expires.
+        // Non-blocking: runs after UI has already updated.
         fetchNextEarnings(symbol).then(nextEarnings => {
-          if (!cancelled) setData(prev => prev ? { ...prev, nextEarnings } : prev);
-          saveStockCacheDB(symbol, { ...result, nextEarnings }, nextEarnings);
+          saveStockCacheDB(symbol, result, nextEarnings);
         });
 
       } catch (e) {
