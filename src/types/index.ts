@@ -65,6 +65,7 @@ export interface StockAnalysis {
   weekLow52: number;
   forwardPE: number;
   dividendYield: number;
+  lastDividend: number; // annual dividend in dollars — stored so yield can be recomputed with live price
   annualData: AnnualData[];
   revenueCAGR: number;
   epsCAGR: number;

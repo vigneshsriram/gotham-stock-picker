@@ -31,15 +31,16 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
           const livePrice = await fetchQuote(symbol);
           if (!cancelled) {
             const price = Number.isFinite(livePrice) ? livePrice : cached.currentPrice;
-            // Always recompute P/E and PEG from live price + stored EPS.
-            // The cached peRatio may be null/stale (saved before the P/E fix).
+            // Recompute price-dependent fields from live price — cached values may be stale/null
             const peRatio = Number.isFinite(cached.eps) && cached.eps > 0
               ? price / cached.eps : NaN;
             const epsGrowthRate = Number.isFinite(cached.epsCAGR) && cached.epsCAGR > 0
               ? cached.epsCAGR * 100 : NaN;
             const pegRatio = Number.isFinite(peRatio) && Number.isFinite(epsGrowthRate) && epsGrowthRate > 0
               ? peRatio / epsGrowthRate : NaN;
-            setData({ ...cached, currentPrice: price, peRatio, pegRatio });
+            const dividendYield = Number.isFinite(cached.lastDividend) && cached.lastDividend > 0
+              ? cached.lastDividend / price : NaN;
+            setData({ ...cached, currentPrice: price, peRatio, pegRatio, dividendYield });
           }
           return;
         }
@@ -175,25 +176,32 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
 
         const intrinsicValue = calcDCF(latestFCF, latestShares, dcfInputs);
 
-        // FMP stable API returns market cap as either `mktCap` or `marketCap`
-        const marketCap = safeNum(profile.mktCap) || safeNum(profile.marketCap);
-        const peRatio = safeNum(profile.pe);
-        const eps = safeNum(profile.eps) || last.eps;
+        // FMP stable /profile only returns: marketCap, beta, price, lastDividend, range
+        // pe/eps/sharesOutstanding/dividendYield are NOT in this endpoint — derive below
+        const marketCap = safeNum(profile.marketCap);
         const beta = safeNum(profile.beta);
-        // FMP range format: "52wLow-52wHigh"
         const [weekLow52, weekHigh52] = (profile.range ?? '').split('-').map(Number);
-        const dividendYield = safeNum(profile.dividendYield);
-        // FMP free tier doesn't provide PEG or forwardPE in profile — derive from data
+
+        const eps = last.eps; // diluted EPS from most recent income statement
+        const liveOrProfilePrice = Number.isFinite(currentPrice) ? currentPrice : safeNum(profile.price);
+        const peRatio = Number.isFinite(eps) && eps > 0 ? liveOrProfilePrice / eps : NaN;
+
         const epsGrowthRate = Number.isFinite(epsCAGR) && epsCAGR > 0 ? epsCAGR * 100 : NaN;
         const pegRatio = Number.isFinite(peRatio) && Number.isFinite(epsGrowthRate) && epsGrowthRate > 0
           ? peRatio / epsGrowthRate : NaN;
+
         const forwardPE = NaN; // not available on FMP free tier
+
+        // lastDividend is annual dividend in dollars; stored so yield can be recomputed with live price
+        const lastDividend = safeNum(profile.lastDividend);
+        const dividendYield = Number.isFinite(lastDividend) && lastDividend > 0 && liveOrProfilePrice > 0
+          ? lastDividend / liveOrProfilePrice : NaN;
 
         const scores = calcAllScores(annualData, {
           revenueCAGR, epsCAGR, fcfCAGR,
           avgROIC, avgOperatingMargin, avgFCFMargin,
           intrinsicValue,
-          currentPrice: Number.isFinite(currentPrice) ? currentPrice : marketCap / latestShares,
+          currentPrice: liveOrProfilePrice,
           peRatio,
         });
 
@@ -203,7 +211,7 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
           sector: profile.sector || 'N/A',
           industry: profile.industry || 'N/A',
           description: profile.description || '',
-          currentPrice: Number.isFinite(currentPrice) ? currentPrice : marketCap / last.sharesOutstanding,
+          currentPrice: liveOrProfilePrice,
           marketCap,
           peRatio,
           pegRatio,
@@ -213,6 +221,7 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
           weekLow52,
           forwardPE,
           dividendYield,
+          lastDividend,
           annualData,
           revenueCAGR,
           epsCAGR,
