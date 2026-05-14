@@ -219,6 +219,22 @@ export async function fetchNextEarnings(symbol: string): Promise<string | null> 
   }
 }
 
+export async function fetchRevenueSegments(symbol: string): Promise<{ fiscalYear: number; date: string; data: Record<string, number> }[]> {
+  try {
+    const cacheKey = `fmp_revseg_${symbol}`;
+    const cached = getCached<{ fiscalYear: number; date: string; data: Record<string, number> }[]>(cacheKey);
+    if (cached !== null) return cached;
+    await delay(1300);
+    const data = await fmpFetch<{ fiscalYear: number; date: string; data: Record<string, number> }[]>(
+      `/revenue-product-segmentation?symbol=${symbol}`
+    );
+    if (Array.isArray(data) && data.length > 0) setCache(cacheKey, data);
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchQuotes(symbols: string[]): Promise<Record<string, number>> {
   if (symbols.length === 0) return {};
   const result: Record<string, number> = {};
