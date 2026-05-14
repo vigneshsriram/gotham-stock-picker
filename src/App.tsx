@@ -21,6 +21,7 @@ import MoatScore from './components/metrics/MoatScore';
 import ManagementScore from './components/metrics/ManagementScore';
 import Valuation from './components/metrics/Valuation';
 import PeerComparison from './components/PeerComparison';
+import RevenueSegments from './components/metrics/RevenueSegments';
 import StickyHeader from './components/StickyHeader';
 import { useStockData } from './hooks/useStockData';
 import logo from './the-moat-logo2.png';
@@ -188,6 +189,7 @@ function Dashboard() {
               <h2 className="section-title">Quality Metrics</h2>
               <div className="metrics-grid">
                 <div id="metric-revenue"><RevenueGrowth data={data} /></div>
+                <div id="metric-segments"><RevenueSegments data={data} /></div>
                 <div id="metric-fcf"><FCFGeneration data={data} /></div>
                 <div id="metric-opmargin"><OperatingMargin data={data} /></div>
                 <div id="metric-roic"><ROICMetric data={data} /></div>

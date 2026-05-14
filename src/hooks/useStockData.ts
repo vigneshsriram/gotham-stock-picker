@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { StockAnalysis, AnnualData, DCFInputs } from '../types';
-import { fetchProfile, fetchIncomeStatements, fetchBalanceSheets, fetchCashFlows, fetchQuote, fetchNextEarnings } from '../api/fmp';
+import type { StockAnalysis, AnnualData, DCFInputs, RevenueSegmentYear } from '../types';
+import { fetchProfile, fetchIncomeStatements, fetchBalanceSheets, fetchCashFlows, fetchQuote, fetchNextEarnings, fetchRevenueSegments } from '../api/fmp';
 import { safeNum } from '../api/apiClient';
 import { cagr, mean, calcROIC, calcDCF, calcAllScores } from '../utils/calculations';
 import { loadStockCacheDB, saveStockCacheDB } from '../lib/db';
@@ -40,7 +40,7 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
               ? peRatio / epsGrowthRate : NaN;
             const dividendYield = Number.isFinite(cached.lastDividend) && cached.lastDividend > 0
               ? cached.lastDividend / price : NaN;
-            setData({ ...cached, currentPrice: price, priceChange: quote.change, priceChangePct: quote.changePercentage, peRatio, pegRatio, dividendYield });
+            setData({ revenueSegments: [], ...cached, currentPrice: price, priceChange: quote.change, priceChangePct: quote.changePercentage, peRatio, pegRatio, dividendYield });
           }
           return;
         }
@@ -57,6 +57,8 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
         setStatus('Fetching current price…');
         const quote = await fetchQuote(symbol);
         const currentPrice = quote.price;
+        setStatus('Fetching revenue segments…');
+        const rawSegments = await fetchRevenueSegments(symbol);
 
         if (cancelled) return;
 
@@ -206,6 +208,16 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
           peRatio,
         });
 
+        // Process revenue segments — take last 10 FY, oldest-first
+        const revenueSegments: RevenueSegmentYear[] = rawSegments
+          .slice(0, 10)
+          .reverse()
+          .map(r => ({
+            year: String(r.fiscalYear),
+            total: Object.values(r.data).reduce((s, v) => s + (v ?? 0), 0),
+            segments: r.data,
+          }));
+
         const result: StockAnalysis = {
           symbol,
           name: profile.companyName || symbol,
@@ -236,6 +248,7 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
           intrinsicValue,
           dcfInputs,
           scores,
+          revenueSegments,
         };
 
         setData(result);

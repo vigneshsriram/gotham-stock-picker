@@ -49,6 +49,12 @@ export interface StockScores {
   overall: number;
 }
 
+export interface RevenueSegmentYear {
+  year: string;        // e.g. "2024"
+  total: number;       // sum of all segments (cross-check vs income statement)
+  segments: Record<string, number>; // segment name → revenue $
+}
+
 export interface StockAnalysis {
   symbol: string;
   name: string;
@@ -79,4 +85,5 @@ export interface StockAnalysis {
   intrinsicValue: number;
   dcfInputs: DCFInputs;
   scores: StockScores;
+  revenueSegments: RevenueSegmentYear[]; // empty array if not available
 }
