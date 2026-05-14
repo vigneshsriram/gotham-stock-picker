@@ -42,11 +42,11 @@ const FALLBACK_TTL_DAYS = 90; // if no earnings date, refresh after one quarter
 export interface StockCacheRow {
   symbol: string;
   data: StockAnalysis;
-  fetched_at: string;       // ISO timestamp
-  next_earnings: string | null; // ISO date string e.g. "2025-07-24"
+  fetched_at: string;
+  next_earnings: string | null;
 }
 
-/** Returns cached data if it's still fresh, null if missing or stale. */
+/** Returns cached data if still fresh, null if missing or stale. */
 export async function loadStockCacheDB(symbol: string): Promise<StockAnalysis | null> {
   const { data: row, error } = await supabase
     .from('stock_cache')
@@ -58,14 +58,12 @@ export async function loadStockCacheDB(symbol: string): Promise<StockAnalysis | 
 
   const now = new Date();
 
-  // If we know the next earnings date, data is fresh until that date passes
   if (row.next_earnings) {
     const earningsDate = new Date(row.next_earnings);
     if (now < earningsDate) return row.data as StockAnalysis;
-    return null; // earnings have passed — financials may be updated
+    return null;
   }
 
-  // No earnings date: fall back to 90-day TTL
   const fetchedAt = new Date(row.fetched_at);
   const ageDays = (now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24);
   if (ageDays < FALLBACK_TTL_DAYS) return row.data as StockAnalysis;
@@ -89,7 +87,6 @@ export async function saveStockCacheDB(
 
 /** Deletes all rows from stock_cache (admin use only). */
 export async function clearStockCacheDB(): Promise<string | null> {
-<<<<<<< HEAD
   const { error, count } = await supabase
     .from('stock_cache')
     .delete({ count: 'exact' })
@@ -97,15 +94,10 @@ export async function clearStockCacheDB(): Promise<string | null> {
   if (error) return error.message;
   if (count === 0) return 'Delete was blocked — make sure the stock_cache DELETE policy exists in Supabase.';
   return null;
-=======
-  const { error } = await supabase.from('stock_cache').delete().neq('symbol', '');
-  return error?.message ?? null;
->>>>>>> origin/main
 }
 
 /** Deletes a single ticker from stock_cache. */
 export async function deleteStockCacheEntryDB(symbol: string): Promise<string | null> {
-<<<<<<< HEAD
   const { error, count } = await supabase
     .from('stock_cache')
     .delete({ count: 'exact' })
@@ -113,10 +105,6 @@ export async function deleteStockCacheEntryDB(symbol: string): Promise<string | 
   if (error) return error.message;
   if (count === 0) return 'Row not deleted — make sure the stock_cache DELETE policy exists in Supabase.';
   return null;
-=======
-  const { error } = await supabase.from('stock_cache').delete().eq('symbol', symbol.toUpperCase());
-  return error?.message ?? null;
->>>>>>> origin/main
 }
 
 /** Returns all rows in stock_cache for the admin view. */
@@ -149,8 +137,6 @@ export async function listUsersDB(): Promise<UserProfile[]> {
   return (data ?? []) as UserProfile[];
 }
 
-// Deletion requires a Supabase Edge Function (service role key can't be in frontend).
-// Call the deployed edge function:
 export async function deleteUserDB(userId: string): Promise<string | null> {
   const { error } = await supabase.functions.invoke('admin-delete-user', {
     body: { userId },
