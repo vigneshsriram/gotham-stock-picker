@@ -47,15 +47,13 @@ export interface FMPProfile {
   sector: string;
   industry: string;
   description: string;
-  mktCap: number;
-  marketCap?: number; // FMP stable API sometimes returns this field name instead
+  // FMP stable /profile returns marketCap (not mktCap)
+  marketCap: number;
   beta: number;
   price: number;
-  pe: number | null;
-  eps: number | null;
+  lastDividend: number | null; // annual dividend in dollars — divide by price for yield
   range: string; // "52wLow-52wHigh"
-  sharesOutstanding: number;
-  dividendYield: number | null;
+  // pe, eps, sharesOutstanding are NOT in this endpoint — compute from income data
 }
 
 export interface FMPIncomeStatement {

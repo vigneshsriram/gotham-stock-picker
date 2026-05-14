@@ -169,14 +169,20 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
 
         const intrinsicValue = calcDCF(latestFCF, latestShares, dcfInputs);
 
-        // FMP stable API returns market cap as either `mktCap` or `marketCap`
-        const marketCap = safeNum(profile.mktCap) || safeNum(profile.marketCap);
-        const peRatio = safeNum(profile.pe);
-        const eps = safeNum(profile.eps) || last.eps;
+        const marketCap = safeNum(profile.marketCap);
         const beta = safeNum(profile.beta);
         // FMP range format: "52wLow-52wHigh"
         const [weekLow52, weekHigh52] = (profile.range ?? '').split('-').map(Number);
-        const dividendYield = safeNum(profile.dividendYield);
+
+        // P/E, EPS, dividend yield — not in FMP stable /profile, compute from data
+        const eps = last.eps; // most recent annual diluted EPS from income statement
+        const liveOrProfilePrice = Number.isFinite(currentPrice) ? currentPrice : safeNum(profile.price);
+        const peRatio = Number.isFinite(eps) && eps > 0 && Number.isFinite(liveOrProfilePrice)
+          ? liveOrProfilePrice / eps : NaN;
+        // lastDividend is the annual dividend in dollars; yield = dividend / price
+        const lastDiv = safeNum(profile.lastDividend);
+        const dividendYield = Number.isFinite(lastDiv) && lastDiv > 0 && Number.isFinite(liveOrProfilePrice) && liveOrProfilePrice > 0
+          ? lastDiv / liveOrProfilePrice : NaN;
         // FMP free tier doesn't provide PEG or forwardPE in profile — derive from data
         const epsGrowthRate = Number.isFinite(epsCAGR) && epsCAGR > 0 ? epsCAGR * 100 : NaN;
         const pegRatio = Number.isFinite(peRatio) && Number.isFinite(epsGrowthRate) && epsGrowthRate > 0
