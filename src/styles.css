@@ -130,6 +130,35 @@ body {
 
 .sidebar-search-btn:hover { background: #2563eb; }
 
+.sidebar-search-wrap { position: relative; margin-bottom: 12px; }
+.sidebar-search-wrap .sidebar-search { margin-bottom: 0; }
+
+.ticker-suggestions {
+  list-style: none;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 8px; margin-top: 4px; overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.ticker-suggestion-item {
+  padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--text);
+  cursor: pointer; transition: background 0.1s;
+}
+.ticker-suggestion-item:hover { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+.ticker-all-list {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  padding: 8px 0 4px; max-height: 180px; overflow-y: auto;
+}
+.ticker-chip {
+  background: var(--bg); border: 1px solid var(--border);
+  color: var(--muted); font-size: 11px; font-weight: 600;
+  padding: 3px 7px; border-radius: 5px; cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  letter-spacing: 0.02em;
+}
+.ticker-chip:hover { background: rgba(59,130,246,0.1); color: var(--text); border-color: rgba(59,130,246,0.3); }
+.ticker-chip.active { background: rgba(59,130,246,0.15); color: var(--blue); border-color: rgba(59,130,246,0.4); }
+
 .sidebar-search-collapsed {
   width: 100%; background: rgba(59,130,246,0.08); border: 1px dashed rgba(59,130,246,0.3);
   color: var(--muted); font-size: 13px; padding: 9px 12px; border-radius: 8px;
