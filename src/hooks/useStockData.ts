@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { StockAnalysis, AnnualData, DCFInputs, RevenueSegmentYear } from '../types';
 import { fetchProfile, fetchIncomeStatements, fetchBalanceSheets, fetchCashFlows, fetchQuote, fetchNextEarnings, fetchRevenueSegments } from '../api/fmp';
+import { isAllowedTicker, ALLOWED_TICKERS } from '../api/allowedTickers';
 import { safeNum } from '../api/apiClient';
 import { cagr, mean, calcROIC, calcDCF, calcAllScores } from '../utils/calculations';
 import { loadStockCacheDB, saveStockCacheDB } from '../lib/db';
@@ -22,6 +23,11 @@ export function useStockData(symbol: string, retryKey = 0): { data: StockAnalysi
       setStatus('');
 
       try {
+        // ── Validate ticker against FMP free tier allowlist ──────
+        if (!isAllowedTicker(symbol)) {
+          throw new Error(`"${symbol}" is not supported on the free tier. Only ${ALLOWED_TICKERS.size} tickers are available — use the search suggestions below.`);
+        }
+
         // ── Check shared DB cache first ──────────────────────────
         setStatus('Checking cache…');
         const cached = await loadStockCacheDB(symbol);

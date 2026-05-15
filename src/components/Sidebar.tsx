@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { getApiKey, setApiKey } from '../api/apiClient';
+import { ALLOWED_TICKERS_SORTED } from '../api/allowedTickers';
 import logo from '../the-moat-logo2.png';
 
 interface Props {
@@ -23,6 +24,12 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
   const [saved, setSaved] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(true);
   const [searchCollapsed, setSearchCollapsed] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const suggestions = draft.trim().length > 0
+    ? ALLOWED_TICKERS_SORTED.filter(t => t.startsWith(draft.trim().toUpperCase())).slice(0, 8)
+    : [];
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,7 +37,15 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
     if (!ticker) return;
     onSelect(ticker);
     setDraft('');
-    setSearchCollapsed(true); // collapse search bar after submitting
+    setShowSuggestions(false);
+    setSearchCollapsed(true);
+  }
+
+  function handleSuggestionClick(ticker: string) {
+    onSelect(ticker);
+    setDraft('');
+    setShowSuggestions(false);
+    setSearchCollapsed(true);
   }
 
   function removeTicker(ticker: string, e: React.MouseEvent) {
@@ -64,11 +79,15 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
           🔍 Search ticker
         </button>
       ) : (
+        <div className="sidebar-search-wrap">
         <form onSubmit={handleSubmit} className="sidebar-search">
           <input
+            ref={inputRef}
             value={draft}
-            onChange={e => setDraft(e.target.value)}
-            placeholder="Enter ticker…"
+            onChange={e => { setDraft(e.target.value); setShowSuggestions(true); }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            placeholder="Search ticker…"
             spellCheck={false}
             autoCapitalize="characters"
             className="sidebar-input"
@@ -76,6 +95,25 @@ export default function Sidebar({ activeTicker, onSelect, watchlist, onRemove, o
           />
           <button type="submit" className="sidebar-search-btn">→</button>
         </form>
+        {showSuggestions && suggestions.length > 0 && (
+          <ul className="ticker-suggestions">
+            {suggestions.map(t => (
+              <li key={t} className="ticker-suggestion-item" onMouseDown={() => handleSuggestionClick(t)}>
+                {t}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!showSuggestions && draft.length === 0 && (
+          <div className="ticker-all-list">
+            {ALLOWED_TICKERS_SORTED.map(t => (
+              <button key={t} className={`ticker-chip${t === activeTicker ? ' active' : ''}`} onMouseDown={() => handleSuggestionClick(t)}>
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
+        </div>
       )}
 
       <button className="sidebar-section-toggle" onClick={() => setWatchlistOpen(v => !v)}>
